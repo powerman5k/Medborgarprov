@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { supabase } from "./lib/supabase.js";
 
 // ============================================================
 // FRÅGEBANK (Fas 1)
@@ -177,40 +178,147 @@ function getLevelLabel(pct) {
   return "Svag";
 }
 
-// Storage helpers
-async function saveHistory(record, existing) {
-  const updated = [record, ...existing];
-  try { await window.storage.set("exam_history", JSON.stringify(updated)); } catch {}
-  return updated;
+// ============================================================
+// STORAGE HELPERS – Supabase
+// ============================================================
+async function getCurrentUserId() {
+  const { data } = await supabase.auth.getUser();
+  return data?.user?.id ?? null;
 }
+
+async function saveHistory(record) {
+  const userId = await getCurrentUserId();
+  if (!userId) return;
+  try {
+    await supabase.from("sessions").insert({
+      user_id:    userId,
+      mode:       record.mode,
+      score:      record.score,
+      total:      record.total,
+      percentage: record.percentage,
+      passed:     record.passed,
+      duration:   record.duration,
+      breakdown:  record.breakdown,
+    });
+  } catch (e) { console.error("saveHistory:", e); }
+}
+
 async function loadHistory() {
-  try { const r = await window.storage.get("exam_history"); return r ? JSON.parse(r.value) : []; } catch { return []; }
+  const userId = await getCurrentUserId();
+  if (!userId) return [];
+  try {
+    const { data, error } = await supabase
+      .from("sessions")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return (data || []).map(r => ({
+      id:         r.id,
+      mode:       r.mode,
+      date:       r.created_at,
+      score:      r.score,
+      total:      r.total,
+      percentage: r.percentage,
+      passed:     r.passed,
+      duration:   r.duration,
+      breakdown:  r.breakdown || [],
+    }));
+  } catch (e) { console.error("loadHistory:", e); return []; }
 }
+
 async function saveErrorBank(eb) {
-  try { await window.storage.set("error_bank", JSON.stringify(eb)); } catch {}
+  const userId = await getCurrentUserId();
+  if (!userId) return;
+  try {
+    const rows = Object.values(eb).map(e => ({
+      user_id:       userId,
+      question_id:   e.questionId,
+      times_seen:    e.timesSeen,
+      times_correct: e.timesCorrect,
+      updated_at:    new Date().toISOString(),
+    }));
+    if (rows.length === 0) return;
+    await supabase.from("error_bank").upsert(rows, { onConflict: "user_id,question_id" });
+  } catch (e) { console.error("saveErrorBank:", e); }
 }
+
 async function loadErrorBank() {
-  try { const r = await window.storage.get("error_bank"); return r ? JSON.parse(r.value) : {}; } catch { return {}; }
+  const userId = await getCurrentUserId();
+  if (!userId) return {};
+  try {
+    const { data, error } = await supabase
+      .from("error_bank")
+      .select("*")
+      .eq("user_id", userId);
+    if (error) throw error;
+    const eb = {};
+    (data || []).forEach(r => {
+      eb[r.question_id] = {
+        questionId:    r.question_id,
+        timesSeen:     r.times_seen,
+        timesCorrect:  r.times_correct,
+      };
+    });
+    return eb;
+  } catch (e) { console.error("loadErrorBank:", e); return {}; }
 }
+
 async function loadOnboarded() {
-  try { const r = await window.storage.get("onboarded"); return r?.value === "true"; } catch { return false; }
+  const userId = await getCurrentUserId();
+  if (!userId) return false;
+  try {
+    const { data } = await supabase
+      .from("streaks")
+      .select("onboarded")
+      .eq("user_id", userId)
+      .single();
+    return data?.onboarded === true;
+  } catch { return false; }
 }
+
 async function markOnboarded() {
-  try { await window.storage.set("onboarded", "true"); } catch {}
+  const userId = await getCurrentUserId();
+  if (!userId) return;
+  try {
+    await supabase.from("streaks").upsert(
+      { user_id: userId, onboarded: true },
+      { onConflict: "user_id" }
+    );
+  } catch (e) { console.error("markOnboarded:", e); }
 }
+
 async function loadStreak() {
-  try { const r = await window.storage.get("streak"); return r ? JSON.parse(r.value) : { current: 0, longest: 0, lastDate: null }; } catch { return { current: 0, longest: 0, lastDate: null }; }
+  const userId = await getCurrentUserId();
+  if (!userId) return { current: 0, longest: 0, lastDate: null };
+  try {
+    const { data } = await supabase
+      .from("streaks")
+      .select("current, longest, last_date")
+      .eq("user_id", userId)
+      .single();
+    if (!data) return { current: 0, longest: 0, lastDate: null };
+    return { current: data.current || 0, longest: data.longest || 0, lastDate: data.last_date };
+  } catch { return { current: 0, longest: 0, lastDate: null }; }
 }
+
 async function updateStreak() {
+  const userId = await getCurrentUserId();
+  if (!userId) return { current: 0, longest: 0, lastDate: null };
   const s = await loadStreak();
-  const today = new Date().toDateString();
-  const yesterday = new Date(Date.now() - 86400000).toDateString();
+  const today = new Date().toISOString().split("T")[0];
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
   if (s.lastDate === today) return s;
   if (s.lastDate === yesterday) s.current++;
   else s.current = 1;
   s.longest = Math.max(s.longest, s.current);
   s.lastDate = today;
-  try { await window.storage.set("streak", JSON.stringify(s)); } catch {}
+  try {
+    await supabase.from("streaks").upsert(
+      { user_id: userId, current: s.current, longest: s.longest, last_date: today },
+      { onConflict: "user_id" }
+    );
+  } catch (e) { console.error("updateStreak:", e); }
   return s;
 }
 
@@ -355,7 +463,7 @@ function OnboardingView({ onDone }) {
 // ============================================================
 // HOME VIEW
 // ============================================================
-function HomeView({ onStartPractice, onStartExam, onDashboard, onErrorBank, streak, history, errorBank }) {
+function HomeView({ onStartPractice, onStartExam, onDashboard, onErrorBank, onLogout, streak, history, errorBank }) {
   const lastExam = history[0];
   const totalDone = history.length;
 
@@ -367,9 +475,14 @@ function HomeView({ onStartPractice, onStartExam, onDashboard, onErrorBank, stre
           <SverigeFlag size={24} />
           <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 16, color: C.textPrimary, letterSpacing: "-0.02em" }}>Medborgarprov</span>
         </div>
-        <button onClick={onDashboard} style={{ background: C.surface, border: `1px solid ${C.border}`, color: C.textSecondary, borderRadius: 10, padding: "8px 14px", fontSize: 13, fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}>
-          📊 Dashboard
-        </button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button onClick={onDashboard} style={{ background: C.surface, border: `1px solid ${C.border}`, color: C.textSecondary, borderRadius: 10, padding: "8px 14px", fontSize: 13, fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}>
+            📊 Dashboard
+          </button>
+          <button onClick={onLogout} style={{ background: C.surface, border: `1px solid ${C.border}`, color: C.textMuted, borderRadius: 10, padding: "8px 12px", fontSize: 13 }} title="Logga ut">
+            ↩
+          </button>
+        </div>
       </div>
 
       {/* Hero */}
@@ -1886,10 +1999,97 @@ function ErrorBankView({ errorBank, onBack, onStartSession }) {
 }
 
 // ============================================================
+// AUTH VIEWS
+// ============================================================
+function AuthView({ onLogin }) {
+  const [mode, setMode] = useState("login"); // login | register | forgot
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(null);
+  const [error, setError] = useState(null);
+
+  async function handleSubmit() {
+    setLoading(true); setError(null); setMessage(null);
+    try {
+      if (mode === "login") {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        onLogin();
+      } else if (mode === "register") {
+        const { error } = await supabase.auth.signUp({ email, password, options: { data: { name } } });
+        if (error) throw error;
+        setMessage("Kolla din e-post och klicka på bekräftelselänken!");
+      } else {
+        const { error } = await supabase.auth.resetPasswordForEmail(email);
+        if (error) throw error;
+        setMessage("Vi har skickat en återställningslänk till din e-post.");
+      }
+    } catch (e) {
+      setError(e.message || "Något gick fel, försök igen.");
+    } finally { setLoading(false); }
+  }
+
+  const inputStyle = {
+    width: "100%", padding: "12px 14px", background: C.surface,
+    border: `1px solid ${C.border}`, borderRadius: 12, color: C.textPrimary,
+    fontSize: 15, fontFamily: "Inter, sans-serif", outline: "none",
+    marginBottom: 12,
+  };
+
+  return (
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24, background: C.bg }}>
+      <div style={{ maxWidth: 400, width: "100%" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 32 }}>
+          <SverigeFlag size={28} />
+          <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 18, color: C.textPrimary }}>Medborgarprov</span>
+        </div>
+
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 20, padding: 28 }}>
+          <h2 style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 20, marginBottom: 20, color: C.textPrimary }}>
+            {mode === "login" ? "Logga in" : mode === "register" ? "Skapa konto" : "Glömt lösenord"}
+          </h2>
+
+          {mode === "register" && (
+            <input placeholder="Ditt namn" value={name} onChange={e => setName(e.target.value)} style={inputStyle} />
+          )}
+          <input placeholder="E-postadress" type="email" value={email} onChange={e => setEmail(e.target.value)} style={inputStyle} />
+          {mode !== "forgot" && (
+            <input placeholder="Lösenord" type="password" value={password} onChange={e => setPassword(e.target.value)} style={inputStyle} />
+          )}
+
+          {error && <div style={{ color: C.red, fontSize: 13, marginBottom: 12, padding: "8px 12px", background: C.red + "15", borderRadius: 8 }}>{error}</div>}
+          {message && <div style={{ color: C.green, fontSize: 13, marginBottom: 12, padding: "8px 12px", background: C.green + "15", borderRadius: 8 }}>{message}</div>}
+
+          <button onClick={handleSubmit} disabled={loading}
+            style={{ width: "100%", padding: 14, background: C.primary, color: "#fff", borderRadius: 12, fontSize: 15, fontWeight: 600, opacity: loading ? 0.7 : 1, marginBottom: 14 }}>
+            {loading ? "Vänta..." : mode === "login" ? "Logga in" : mode === "register" ? "Skapa konto" : "Skicka länk"}
+          </button>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "center" }}>
+            {mode === "login" && (
+              <>
+                <button onClick={() => setMode("register")} style={{ background: "none", color: C.primary, fontSize: 13 }}>Inget konto? Skapa ett här</button>
+                <button onClick={() => setMode("forgot")} style={{ background: "none", color: C.textMuted, fontSize: 12 }}>Glömt lösenordet?</button>
+              </>
+            )}
+            {mode !== "login" && (
+              <button onClick={() => setMode("login")} style={{ background: "none", color: C.primary, fontSize: 13 }}>← Tillbaka till inloggning</button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
 // APP ROOT
 // ============================================================
 export default function App() {
   const [view, setView] = useState("loading");
+  const [user, setUser] = useState(null);
   const [history, setHistory] = useState([]);
   const [errorBank, setErrorBank] = useState({});
   const [streak, setStreak] = useState({ current: 0, longest: 0 });
@@ -1898,16 +2098,37 @@ export default function App() {
   const [lastSession, setLastSession] = useState(null);
 
   useEffect(() => {
-    (async () => {
-      const [onboarded, hist, eb, sk] = await Promise.all([
-        loadOnboarded(), loadHistory(), loadErrorBank(), loadStreak()
-      ]);
-      setHistory(hist);
-      setErrorBank(eb);
-      setStreak(sk);
-      setView(onboarded ? "home" : "onboarding");
-    })();
+    // Kolla om användaren redan är inloggad
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser(session.user);
+        bootApp();
+      } else {
+        setView("auth");
+      }
+    });
+
+    // Lyssna på auth-förändringar
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser(session.user);
+      } else {
+        setUser(null);
+        setView("auth");
+      }
+    });
+    return () => subscription.unsubscribe();
   }, []);
+
+  async function bootApp() {
+    const [onboarded, hist, eb, sk] = await Promise.all([
+      loadOnboarded(), loadHistory(), loadErrorBank(), loadStreak()
+    ]);
+    setHistory(hist);
+    setErrorBank(eb);
+    setStreak(sk);
+    setView(onboarded ? "home" : "onboarding");
+  }
 
   async function handleQuizComplete(session) {
     setLastSession(session);
@@ -1931,7 +2152,8 @@ export default function App() {
       duration: session.duration,
       breakdown: session.breakdown,
     };
-    const newHistory = await saveHistory(record, history);
+    await saveHistory(record);
+    const newHistory = await loadHistory();
     setHistory(newHistory);
     const newStreak = await updateStreak();
     setStreak(newStreak);
@@ -1982,8 +2204,9 @@ export default function App() {
     <>
       <style>{globalStyle}</style>
       <div style={{ maxWidth: 480, margin: "0 auto", background: C.bg, minHeight: "100vh" }}>
+        {view === "auth"           && <AuthView onLogin={bootApp} />}
         {view === "onboarding"     && <OnboardingView onDone={() => setView("home")} />}
-        {view === "home"           && <HomeView onStartPractice={() => setView("practice-setup")} onStartExam={() => setView("exam-setup")} onDashboard={() => setView("dashboard")} onErrorBank={() => setView("errorbank")} streak={streak} history={history} errorBank={errorBank} />}
+        {view === "home"           && <HomeView onStartPractice={() => setView("practice-setup")} onStartExam={() => setView("exam-setup")} onDashboard={() => setView("dashboard")} onErrorBank={() => setView("errorbank")} onLogout={async () => { await supabase.auth.signOut(); }} streak={streak} history={history} errorBank={errorBank} />}
         {view === "practice-setup" && <PracticeSetupView onStart={startPractice} onBack={() => setView("home")} errorBank={errorBank} />}
         {view === "exam-setup"     && <ExamSetupView onStart={startExam} onBack={() => setView("home")} history={history} />}
         {view === "errorbank"      && <ErrorBankView errorBank={errorBank} onBack={() => setView("home")} onStartSession={startErrorBankSession} />}
