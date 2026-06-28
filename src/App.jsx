@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { supabase } from "./lib/supabase.js";
 
 // ============================================================
 // FRÅGEBANK (Fas 1)
@@ -179,133 +178,50 @@ function getLevelLabel(pct) {
 }
 
 // ============================================================
-// STORAGE HELPERS – Supabase
+// STORAGE HELPERS – localStorage
 // ============================================================
-async function getCurrentUserId() {
-  const { data } = await supabase.auth.getUser();
-  return data?.user?.id ?? null;
+const KEYS = {
+  history:   "mbp_history",
+  errorBank: "mbp_error_bank",
+  streak:    "mbp_streak",
+  onboarded: "mbp_onboarded",
+};
+
+function saveHistory(record) {
+  const hist = loadHistory();
+  hist.unshift(record);
+  localStorage.setItem(KEYS.history, JSON.stringify(hist));
 }
 
-async function saveHistory(record) {
-  const userId = await getCurrentUserId();
-  if (!userId) return;
-  try {
-    await supabase.from("sessions").insert({
-      user_id:    userId,
-      mode:       record.mode,
-      score:      record.score,
-      total:      record.total,
-      percentage: record.percentage,
-      passed:     record.passed,
-      duration:   record.duration,
-      breakdown:  record.breakdown,
-    });
-  } catch (e) { console.error("saveHistory:", e); }
+function loadHistory() {
+  try { return JSON.parse(localStorage.getItem(KEYS.history) || "[]"); }
+  catch { return []; }
 }
 
-async function loadHistory() {
-  const userId = await getCurrentUserId();
-  if (!userId) return [];
-  try {
-    const { data, error } = await supabase
-      .from("sessions")
-      .select("*")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false });
-    if (error) throw error;
-    return (data || []).map(r => ({
-      id:         r.id,
-      mode:       r.mode,
-      date:       r.created_at,
-      score:      r.score,
-      total:      r.total,
-      percentage: r.percentage,
-      passed:     r.passed,
-      duration:   r.duration,
-      breakdown:  r.breakdown || [],
-    }));
-  } catch (e) { console.error("loadHistory:", e); return []; }
+function saveErrorBank(eb) {
+  localStorage.setItem(KEYS.errorBank, JSON.stringify(eb));
 }
 
-async function saveErrorBank(eb) {
-  const userId = await getCurrentUserId();
-  if (!userId) return;
-  try {
-    const rows = Object.values(eb).map(e => ({
-      user_id:       userId,
-      question_id:   e.questionId,
-      times_seen:    e.timesSeen,
-      times_correct: e.timesCorrect,
-      updated_at:    new Date().toISOString(),
-    }));
-    if (rows.length === 0) return;
-    await supabase.from("error_bank").upsert(rows, { onConflict: "user_id,question_id" });
-  } catch (e) { console.error("saveErrorBank:", e); }
+function loadErrorBank() {
+  try { return JSON.parse(localStorage.getItem(KEYS.errorBank) || "{}"); }
+  catch { return {}; }
 }
 
-async function loadErrorBank() {
-  const userId = await getCurrentUserId();
-  if (!userId) return {};
-  try {
-    const { data, error } = await supabase
-      .from("error_bank")
-      .select("*")
-      .eq("user_id", userId);
-    if (error) throw error;
-    const eb = {};
-    (data || []).forEach(r => {
-      eb[r.question_id] = {
-        questionId:    r.question_id,
-        timesSeen:     r.times_seen,
-        timesCorrect:  r.times_correct,
-      };
-    });
-    return eb;
-  } catch (e) { console.error("loadErrorBank:", e); return {}; }
+function loadOnboarded() {
+  return localStorage.getItem(KEYS.onboarded) === "true";
 }
 
-async function loadOnboarded() {
-  const userId = await getCurrentUserId();
-  if (!userId) return false;
-  try {
-    const { data } = await supabase
-      .from("streaks")
-      .select("onboarded")
-      .eq("user_id", userId)
-      .single();
-    return data?.onboarded === true;
-  } catch { return false; }
+function markOnboarded() {
+  localStorage.setItem(KEYS.onboarded, "true");
 }
 
-async function markOnboarded() {
-  const userId = await getCurrentUserId();
-  if (!userId) return;
-  try {
-    await supabase.from("streaks").upsert(
-      { user_id: userId, onboarded: true },
-      { onConflict: "user_id" }
-    );
-  } catch (e) { console.error("markOnboarded:", e); }
+function loadStreak() {
+  try { return JSON.parse(localStorage.getItem(KEYS.streak) || '{"current":0,"longest":0,"lastDate":null}'); }
+  catch { return { current: 0, longest: 0, lastDate: null }; }
 }
 
-async function loadStreak() {
-  const userId = await getCurrentUserId();
-  if (!userId) return { current: 0, longest: 0, lastDate: null };
-  try {
-    const { data } = await supabase
-      .from("streaks")
-      .select("current, longest, last_date")
-      .eq("user_id", userId)
-      .single();
-    if (!data) return { current: 0, longest: 0, lastDate: null };
-    return { current: data.current || 0, longest: data.longest || 0, lastDate: data.last_date };
-  } catch { return { current: 0, longest: 0, lastDate: null }; }
-}
-
-async function updateStreak() {
-  const userId = await getCurrentUserId();
-  if (!userId) return { current: 0, longest: 0, lastDate: null };
-  const s = await loadStreak();
+function updateStreak() {
+  const s = loadStreak();
   const today = new Date().toISOString().split("T")[0];
   const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
   if (s.lastDate === today) return s;
@@ -313,12 +229,7 @@ async function updateStreak() {
   else s.current = 1;
   s.longest = Math.max(s.longest, s.current);
   s.lastDate = today;
-  try {
-    await supabase.from("streaks").upsert(
-      { user_id: userId, current: s.current, longest: s.longest, last_date: today },
-      { onConflict: "user_id" }
-    );
-  } catch (e) { console.error("updateStreak:", e); }
+  localStorage.setItem(KEYS.streak, JSON.stringify(s));
   return s;
 }
 
@@ -463,7 +374,7 @@ function OnboardingView({ onDone }) {
 // ============================================================
 // HOME VIEW
 // ============================================================
-function HomeView({ onStartPractice, onStartExam, onDashboard, onErrorBank, onLogout, streak, history, errorBank }) {
+function HomeView({ onStartPractice, onStartExam, onDashboard, onErrorBank, onStudy, streak, history, errorBank }) {
   const lastExam = history[0];
   const totalDone = history.length;
 
@@ -475,14 +386,9 @@ function HomeView({ onStartPractice, onStartExam, onDashboard, onErrorBank, onLo
           <SverigeFlag size={24} />
           <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 16, color: C.textPrimary, letterSpacing: "-0.02em" }}>Medborgarprov</span>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={onDashboard} style={{ background: C.surface, border: `1px solid ${C.border}`, color: C.textSecondary, borderRadius: 10, padding: "8px 14px", fontSize: 13, fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}>
-            📊 Dashboard
-          </button>
-          <button onClick={onLogout} style={{ background: C.surface, border: `1px solid ${C.border}`, color: C.textMuted, borderRadius: 10, padding: "8px 12px", fontSize: 13 }} title="Logga ut">
-            ↩
-          </button>
-        </div>
+        <button onClick={onDashboard} style={{ background: C.surface, border: `1px solid ${C.border}`, color: C.textSecondary, borderRadius: 10, padding: "8px 14px", fontSize: 13, fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}>
+          📊 Dashboard
+        </button>
       </div>
 
       {/* Hero */}
@@ -522,6 +428,17 @@ function HomeView({ onStartPractice, onStartExam, onDashboard, onErrorBank, onLo
             </div>
           </div>
         )}
+
+        {/* Provet startar snart – infobanner */}
+        <div style={{ background: "#1a2a1a", border: "1px solid #2a5a2a", borderRadius: 14, padding: "14px 16px", marginBottom: 20, display: "flex", gap: 12, alignItems: "flex-start" }}>
+          <span style={{ fontSize: 18, flexShrink: 0 }}>📅</span>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: C.green, marginBottom: 4 }}>Riktiga provet startar augusti 2026</div>
+            <div style={{ fontSize: 12, color: C.textSecondary, lineHeight: 1.5 }}>
+              Du anmäler dig via UHR när du fått ett anvisningsbrev från Migrationsverket. Provet testar grundläggande kunskaper om det svenska samhället.
+            </div>
+          </div>
+        </div>
 
         {/* AI-studietips */}
         <AIStudyTip history={history} errorBank={errorBank} />
@@ -564,6 +481,17 @@ function HomeView({ onStartPractice, onStartExam, onDashboard, onErrorBank, onLo
                 {Object.values(errorBank).filter(e => e.timesSeen > 0 && (e.timesCorrect / e.timesSeen) < 0.7).length}
               </div>
             )}
+          </button>
+
+          <button
+            onClick={onStudy}
+            style={{ background: C.surface, border: `1px solid ${C.border}`, color: C.textPrimary, borderRadius: 16, padding: "20px 24px", textAlign: "left", transition: "background 0.2s" }}
+            onMouseEnter={e => e.currentTarget.style.background = C.surfaceHover}
+            onMouseLeave={e => e.currentTarget.style.background = C.surface}
+          >
+            <div style={{ fontSize: 22, marginBottom: 6 }}>📘</div>
+            <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 17, marginBottom: 4 }}>Studera</div>
+            <div style={{ fontSize: 13, color: C.textSecondary }}>Lyssna på UHR:s officiella material · 14 kapitel · PDF</div>
           </button>
         </div>
       </div>
@@ -2001,82 +1929,120 @@ function ErrorBankView({ errorBank, onBack, onStartSession }) {
 // ============================================================
 // AUTH VIEWS
 // ============================================================
-function AuthView({ onLogin }) {
-  const [mode, setMode] = useState("login"); // login | register | forgot
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState(null);
-  const [error, setError] = useState(null);
+// ============================================================
+// STUDY VIEW – Utbildningsmaterial från UHR
+// ============================================================
+const STUDY_CHAPTERS = [
+  { num: 1,  emoji: "📖", title: "Inledning",                                 file: "01_inledning" },
+  { num: 2,  emoji: "🗺️", title: "Landet Sverige",                            file: "02_landet-sverige" },
+  { num: 3,  emoji: "🏛️", title: "Sveriges demokratiska system",              file: "03_sveriges-demokratiska-system" },
+  { num: 4,  emoji: "⚖️", title: "Så här styrs Sverige",                      file: "04_sa-har-styrs-sverige" },
+  { num: 5,  emoji: "🗳️", title: "Politiska val och partier",                 file: "05_politiska-val-och-partier" },
+  { num: 6,  emoji: "🔒", title: "Lag och rätt",                              file: "06_lag-och-ratt" },
+  { num: 7,  emoji: "📰", title: "Mediernas roll",                            file: "07_mediernas-roll" },
+  { num: 8,  emoji: "✊", title: "Mänskliga rättigheter",                     file: "08_manskliga-rattigheter" },
+  { num: 9,  emoji: "💼", title: "Arbetsmarknad och privatekonomi",            file: "09_arbetsmarknad-och-privatekonomi" },
+  { num: 10, emoji: "🏥", title: "Välfärdssamhället",                         file: "10_valfardssamhallet" },
+  { num: 11, emoji: "📜", title: "Sveriges moderna historia",                  file: "11_sveriges-moderna-historia" },
+  { num: 12, emoji: "🌍", title: "Sverige och omvärlden",                     file: "12_sverige-och-omvarlden" },
+  { num: 13, emoji: "🕌", title: "En sekulär stat och ett mångreligiöst land", file: "13_en-sekular-stat-och-ett-mangreligiost-land" },
+  { num: 14, emoji: "🎄", title: "Traditioner och högtider",                  file: "14_traditioner-och-hogtider" },
+];
 
-  async function handleSubmit() {
-    setLoading(true); setError(null); setMessage(null);
-    try {
-      if (mode === "login") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        onLogin();
-      } else if (mode === "register") {
-        const { error } = await supabase.auth.signUp({ email, password, options: { data: { name } } });
-        if (error) throw error;
-        setMessage("Kolla din e-post och klicka på bekräftelselänken!");
-      } else {
-        const { error } = await supabase.auth.resetPasswordForEmail(email);
-        if (error) throw error;
-        setMessage("Vi har skickat en återställningslänk till din e-post.");
-      }
-    } catch (e) {
-      setError(e.message || "Något gick fel, försök igen.");
-    } finally { setLoading(false); }
-  }
+const UHR_BASE = "https://www.uhr.se/globalassets/_uhr.se/medborgarskapsprovet/utbildningsmaterial/";
+const PDF_URL  = UHR_BASE + "sverige-i-fokus.pdf";
 
-  const inputStyle = {
-    width: "100%", padding: "12px 14px", background: C.surface,
-    border: `1px solid ${C.border}`, borderRadius: 12, color: C.textPrimary,
-    fontSize: 15, fontFamily: "Inter, sans-serif", outline: "none",
-    marginBottom: 12,
-  };
+function StudyChapterCard({ chapter }) {
+  const [open, setOpen] = useState(false);
+  const src = UHR_BASE + chapter.file + ".mp3";
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24, background: C.bg }}>
-      <div style={{ maxWidth: 400, width: "100%" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 32 }}>
-          <SverigeFlag size={28} />
-          <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 18, color: C.textPrimary }}>Medborgarprov</span>
+    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden", transition: "border-color 0.2s", borderColor: open ? C.primary + "66" : C.border }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{ width: "100%", background: "none", display: "flex", alignItems: "center", gap: 14, padding: "16px 18px", textAlign: "left" }}
+      >
+        <span style={{ fontSize: 22, flexShrink: 0, width: 32, textAlign: "center" }}>{chapter.emoji}</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 11, color: C.textMuted, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 2 }}>
+            Kapitel {chapter.num}
+          </div>
+          <div style={{ fontSize: 14, fontWeight: 600, color: C.textPrimary, lineHeight: 1.3 }}>{chapter.title}</div>
+        </div>
+        <span style={{ color: C.textMuted, fontSize: 18, flexShrink: 0, transition: "transform 0.2s", transform: open ? "rotate(90deg)" : "none" }}>›</span>
+      </button>
+
+      {open && (
+        <div style={{ padding: "0 18px 18px" }}>
+          <audio
+            controls
+            src={src}
+            preload="none"
+            style={{ width: "100%", height: 40, accentColor: C.primary, colorScheme: "dark" }}
+          />
+          <div style={{ marginTop: 10, fontSize: 12, color: C.textMuted }}>
+            Ljudfil från UHR · mp3
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StudyView({ onBack }) {
+  return (
+    <div style={{ minHeight: "100vh", padding: "0 0 48px" }}>
+      {/* Header */}
+      <div style={{ padding: "24px 24px 0", display: "flex", alignItems: "center", gap: 12 }}>
+        <button
+          onClick={onBack}
+          style={{ background: C.surface, border: `1px solid ${C.border}`, color: C.textSecondary, borderRadius: 10, padding: "8px 14px", fontSize: 13, fontWeight: 500 }}
+        >
+          ← Tillbaka
+        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <SverigeFlag size={20} />
+          <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 15, color: C.textPrimary }}>Utbildningsmaterial</span>
+        </div>
+      </div>
+
+      <div style={{ padding: "28px 24px 0" }}>
+        {/* Intro-kort */}
+        <div style={{ background: "linear-gradient(135deg, #1a3a2a 0%, #1a1f2e 100%)", border: "1px solid #2a5a3a", borderRadius: 18, padding: 24, marginBottom: 24 }}>
+          <div style={{ fontSize: 28, marginBottom: 10 }}>📘</div>
+          <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 18, color: C.textPrimary, marginBottom: 8 }}>
+            Sverige i fokus
+          </div>
+          <div style={{ fontSize: 13, color: C.textSecondary, lineHeight: 1.6, marginBottom: 16 }}>
+            Officiellt studiematerial framtaget av UHR och Skolverket. Lyssna på kapitlen nedan eller ladda ned hela boken som PDF.
+          </div>
+          <a
+            href={PDF_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#22c55e22", border: "1px solid #22c55e66", color: C.green, borderRadius: 10, padding: "10px 16px", fontSize: 13, fontWeight: 600, textDecoration: "none" }}
+          >
+            📄 Öppna PDF
+          </a>
         </div>
 
-        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 20, padding: 28 }}>
-          <h2 style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 20, marginBottom: 20, color: C.textPrimary }}>
-            {mode === "login" ? "Logga in" : mode === "register" ? "Skapa konto" : "Glömt lösenord"}
-          </h2>
+        {/* Kapitel-lista */}
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 11, color: C.textMuted, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14 }}>
+            14 kapitel · klicka för att lyssna
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {STUDY_CHAPTERS.map(ch => (
+              <StudyChapterCard key={ch.num} chapter={ch} />
+            ))}
+          </div>
+        </div>
 
-          {mode === "register" && (
-            <input placeholder="Ditt namn" value={name} onChange={e => setName(e.target.value)} style={inputStyle} />
-          )}
-          <input placeholder="E-postadress" type="email" value={email} onChange={e => setEmail(e.target.value)} style={inputStyle} />
-          {mode !== "forgot" && (
-            <input placeholder="Lösenord" type="password" value={password} onChange={e => setPassword(e.target.value)} style={inputStyle} />
-          )}
-
-          {error && <div style={{ color: C.red, fontSize: 13, marginBottom: 12, padding: "8px 12px", background: C.red + "15", borderRadius: 8 }}>{error}</div>}
-          {message && <div style={{ color: C.green, fontSize: 13, marginBottom: 12, padding: "8px 12px", background: C.green + "15", borderRadius: 8 }}>{message}</div>}
-
-          <button onClick={handleSubmit} disabled={loading}
-            style={{ width: "100%", padding: 14, background: C.primary, color: "#fff", borderRadius: 12, fontSize: 15, fontWeight: 600, opacity: loading ? 0.7 : 1, marginBottom: 14 }}>
-            {loading ? "Vänta..." : mode === "login" ? "Logga in" : mode === "register" ? "Skapa konto" : "Skicka länk"}
-          </button>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "center" }}>
-            {mode === "login" && (
-              <>
-                <button onClick={() => setMode("register")} style={{ background: "none", color: C.primary, fontSize: 13 }}>Inget konto? Skapa ett här</button>
-                <button onClick={() => setMode("forgot")} style={{ background: "none", color: C.textMuted, fontSize: 12 }}>Glömt lösenordet?</button>
-              </>
-            )}
-            {mode !== "login" && (
-              <button onClick={() => setMode("login")} style={{ background: "none", color: C.primary, fontSize: 13 }}>← Tillbaka till inloggning</button>
-            )}
+        {/* Footer-notering */}
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: "14px 16px", display: "flex", gap: 10 }}>
+          <span style={{ fontSize: 16, flexShrink: 0 }}>ℹ️</span>
+          <div style={{ fontSize: 12, color: C.textMuted, lineHeight: 1.5 }}>
+            Materialet är framtaget av UHR på uppdrag av regeringen. Övningsprov från andra aktörer är inte kontrollerade av UHR.
           </div>
         </div>
       </div>
@@ -2084,12 +2050,12 @@ function AuthView({ onLogin }) {
   );
 }
 
+
 // ============================================================
 // APP ROOT
 // ============================================================
 export default function App() {
   const [view, setView] = useState("loading");
-  const [user, setUser] = useState(null);
   const [history, setHistory] = useState([]);
   const [errorBank, setErrorBank] = useState({});
   const [streak, setStreak] = useState({ current: 0, longest: 0 });
@@ -2098,39 +2064,17 @@ export default function App() {
   const [lastSession, setLastSession] = useState(null);
 
   useEffect(() => {
-    // Kolla om användaren redan är inloggad
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setUser(session.user);
-        bootApp();
-      } else {
-        setView("auth");
-      }
-    });
-
-    // Lyssna på auth-förändringar
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        setUser(session.user);
-      } else {
-        setUser(null);
-        setView("auth");
-      }
-    });
-    return () => subscription.unsubscribe();
+    bootApp();
   }, []);
 
-  async function bootApp() {
-    const [onboarded, hist, eb, sk] = await Promise.all([
-      loadOnboarded(), loadHistory(), loadErrorBank(), loadStreak()
-    ]);
-    setHistory(hist);
-    setErrorBank(eb);
-    setStreak(sk);
-    setView(onboarded ? "home" : "onboarding");
+  function bootApp() {
+    setHistory(loadHistory());
+    setErrorBank(loadErrorBank());
+    setStreak(loadStreak());
+    setView(loadOnboarded() ? "home" : "onboarding");
   }
 
-  async function handleQuizComplete(session) {
+  function handleQuizComplete(session) {
     setLastSession(session);
     const newEb = { ...errorBank };
     session.results.forEach(r => {
@@ -2139,7 +2083,7 @@ export default function App() {
       if (r.correct) newEb[r.question.id].timesCorrect++;
     });
     setErrorBank(newEb);
-    await saveErrorBank(newEb);
+    saveErrorBank(newEb);
 
     const record = {
       id: generateId(),
@@ -2152,11 +2096,9 @@ export default function App() {
       duration: session.duration,
       breakdown: session.breakdown,
     };
-    await saveHistory(record);
-    const newHistory = await loadHistory();
-    setHistory(newHistory);
-    const newStreak = await updateStreak();
-    setStreak(newStreak);
+    saveHistory(record);
+    setHistory(loadHistory());
+    setStreak(updateStreak());
     setView("result");
   }
 
@@ -2204,9 +2146,9 @@ export default function App() {
     <>
       <style>{globalStyle}</style>
       <div style={{ maxWidth: 480, margin: "0 auto", background: C.bg, minHeight: "100vh" }}>
-        {view === "auth"           && <AuthView onLogin={bootApp} />}
         {view === "onboarding"     && <OnboardingView onDone={() => setView("home")} />}
-        {view === "home"           && <HomeView onStartPractice={() => setView("practice-setup")} onStartExam={() => setView("exam-setup")} onDashboard={() => setView("dashboard")} onErrorBank={() => setView("errorbank")} onLogout={async () => { await supabase.auth.signOut(); }} streak={streak} history={history} errorBank={errorBank} />}
+        {view === "home"           && <HomeView onStartPractice={() => setView("practice-setup")} onStartExam={() => setView("exam-setup")} onDashboard={() => setView("dashboard")} onErrorBank={() => setView("errorbank")} onStudy={() => setView("study")} streak={streak} history={history} errorBank={errorBank} />}
+        {view === "study"          && <StudyView onBack={() => setView("home")} />}
         {view === "practice-setup" && <PracticeSetupView onStart={startPractice} onBack={() => setView("home")} errorBank={errorBank} />}
         {view === "exam-setup"     && <ExamSetupView onStart={startExam} onBack={() => setView("home")} history={history} />}
         {view === "errorbank"      && <ErrorBankView errorBank={errorBank} onBack={() => setView("home")} onStartSession={startErrorBankSession} />}
@@ -2222,3 +2164,4 @@ export default function App() {
     </>
   );
 }
+                                                                                                                                                                   
