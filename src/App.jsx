@@ -185,6 +185,7 @@ const KEYS = {
   errorBank: "mbp_error_bank",
   streak:    "mbp_streak",
   onboarded: "mbp_onboarded",
+  xp:        "mbp_xp",
 };
 
 function saveHistory(record) {
@@ -233,6 +234,26 @@ function updateStreak() {
   return s;
 }
 
+function loadXP() {
+  return parseInt(localStorage.getItem(KEYS.xp) || "0", 10) || 0;
+}
+function addXP(amount) {
+  const next = loadXP() + amount;
+  localStorage.setItem(KEYS.xp, next.toString());
+  return next;
+}
+function getChapterProgress(errorBank) {
+  const map = {};
+  ALL_QUESTIONS.forEach(q => {
+    if (!map[q.chapter]) map[q.chapter] = { id: q.chapter, name: q.chapterName, correct: 0, seen: 0 };
+    const e = errorBank[q.id];
+    if (e && e.timesSeen > 0) { map[q.chapter].correct += e.timesCorrect; map[q.chapter].seen += e.timesSeen; }
+  });
+  return Object.values(map).sort((a, b) => a.id - b.id).map(c => ({
+    ...c, pct: c.seen > 0 ? Math.round((c.correct / c.seen) * 100) : null,
+  }));
+}
+
 // ============================================================
 // STYLES
 // ============================================================
@@ -262,6 +283,8 @@ const globalStyle = `
   ::-webkit-scrollbar-thumb { background: ${C.border}; border-radius: 3px; }
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes xpPop { 0% { transform: scale(0.6); opacity: 0; } 60% { transform: scale(1.12); } 100% { transform: scale(1); opacity: 1; } }
   .ai-fade { animation: fadeIn 0.3s ease; }
 `;
 
@@ -374,7 +397,7 @@ function OnboardingView({ onDone }) {
 // ============================================================
 // HOME VIEW
 // ============================================================
-function HomeView({ onStartPractice, onStartExam, onDashboard, onErrorBank, onStudy, streak, history, errorBank }) {
+function HomeView({ onStartPractice, onStartExam, onDashboard, onErrorBank, onStudy, streak, history, errorBank, totalXP }) {
   const lastExam = history[0];
   const totalDone = history.length;
 
@@ -396,12 +419,20 @@ function HomeView({ onStartPractice, onStartExam, onDashboard, onErrorBank, onSt
         <div style={{ background: `linear-gradient(135deg, #1a2a5e 0%, #1a1f2e 100%)`, border: `1px solid #2a3a7e`, borderRadius: 20, padding: 28, marginBottom: 20, position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: -20, right: -20, width: 120, height: 120, background: C.primary, opacity: 0.06, borderRadius: "50%" }} />
           <div style={{ position: "relative" }}>
-            {streak.current > 0 && (
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: C.gold + "22", border: `1px solid ${C.gold}44`, borderRadius: 99, padding: "4px 12px", marginBottom: 14 }}>
-                <span style={{ fontSize: 14 }}>🔥</span>
-                <span style={{ color: C.gold, fontSize: 12, fontWeight: 600 }}>{streak.current} dagars streak</span>
-              </div>
-            )}
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+              {streak.current > 0 && (
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: C.gold + "22", border: `1px solid ${C.gold}44`, borderRadius: 99, padding: "4px 12px" }}>
+                  <span style={{ fontSize: 14 }}>🔥</span>
+                  <span style={{ color: C.gold, fontSize: 12, fontWeight: 600 }}>{streak.current} dagars streak</span>
+                </div>
+              )}
+              {totalXP > 0 && (
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: C.primary + "22", border: `1px solid ${C.primary}44`, borderRadius: 99, padding: "4px 12px" }}>
+                  <span style={{ fontSize: 12 }}>⚡</span>
+                  <span style={{ color: C.primary, fontSize: 12, fontWeight: 600 }}>{totalXP} XP totalt</span>
+                </div>
+              )}
+            </div>
             <h1 style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 26, color: C.textPrimary, lineHeight: 1.2, marginBottom: 8 }}>
               Redo att öva?
             </h1>
@@ -494,6 +525,34 @@ function HomeView({ onStartPractice, onStartExam, onDashboard, onErrorBank, onSt
             <div style={{ fontSize: 13, color: C.textSecondary }}>Lyssna på UHR:s officiella material · 14 kapitel · PDF</div>
           </button>
         </div>
+
+        {/* Chapter progress grid */}
+        {(() => {
+          const chapterProgress = getChapterProgress(errorBank);
+          const withData = chapterProgress.filter(c => c.pct !== null);
+          if (withData.length === 0) return null;
+          return (
+            <div style={{ marginTop: 28 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: C.textMuted, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 12 }}>
+                Framsteg per kapitel
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                {withData.map(ch => (
+                  <div key={ch.id} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: "10px 12px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
+                      <span style={{ fontSize: 11, color: C.textMuted }}>Kap {ch.id}</span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: getLevelColor(ch.pct) }}>{ch.pct}%</span>
+                    </div>
+                    <ProgressBar value={ch.pct} max={100} color={getLevelColor(ch.pct)} height={4} />
+                    <div style={{ fontSize: 10, color: C.textMuted, marginTop: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {ch.name}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
@@ -792,6 +851,7 @@ function QuizView({ questions, mode, onComplete }) {
   const [timeLeft, setTimeLeft] = useState(mode === "exam" ? 45 * 60 : null);
   const [startTime] = useState(Date.now());
   const [showQuit, setShowQuit] = useState(false);
+  const [xpEarned, setXpEarned] = useState(0);
   const intervalRef = useRef(null);
   const resultsRef = useRef([]);
 
@@ -822,6 +882,7 @@ function QuizView({ questions, mode, onComplete }) {
     setSelected(i);
     setAnswered(true);
     const correct = i === q.correctAnswer;
+    if (correct && mode === "practice") setXpEarned(x => x + 10);
     const newResults = [...results, { question: q, selectedIndex: i, correct }];
     setResults(newResults);
     resultsRef.current = newResults;
@@ -846,14 +907,14 @@ function QuizView({ questions, mode, onComplete }) {
     const score = calculateScore(res);
     const breakdown = calculateChapterBreakdown(res);
     const duration = Math.round((Date.now() - startTime) / 1000);
-    onComplete({ results: res, score, breakdown, duration, mode });
+    onComplete({ results: res, score, breakdown, duration, mode, xpEarned });
   }
 
   const timerColor = timeLeft !== null && timeLeft < 300 ? C.red : C.textSecondary;
   const letters = ["A", "B", "C", "D"];
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", padding: "20px 20px 32px" }}>
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", padding: `20px 20px ${answered && mode === "practice" ? 230 : 32}px` }}>
 
       {/* Quit confirm overlay */}
       {showQuit && (
@@ -892,8 +953,15 @@ function QuizView({ questions, mode, onComplete }) {
       </div>
 
       {/* Progress */}
-      <div style={{ marginBottom: 4 }}>
-        <ProgressBar value={idx} max={questions.length} color={mode === "exam" ? C.primary : C.green} />
+      <div style={{ marginBottom: 4, display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ flex: 1 }}>
+          <ProgressBar value={idx} max={questions.length} color={mode === "exam" ? C.primary : C.green} />
+        </div>
+        {mode === "practice" && xpEarned > 0 && (
+          <div style={{ flexShrink: 0, background: C.gold + "22", border: `1px solid ${C.gold}44`, borderRadius: 99, padding: "3px 10px", fontSize: 12, fontWeight: 700, color: C.gold }}>
+            ⚡ {xpEarned} XP
+          </div>
+        )}
       </div>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16, fontSize: 11, color: C.textMuted }}>
         <span>{idx + 1} / {questions.length}</span>
@@ -939,23 +1007,34 @@ function QuizView({ questions, mode, onComplete }) {
           })}
         </div>
 
-        {/* Feedback box (practice mode) */}
-        {answered && mode === "practice" && (
-          <div style={{ marginTop: 18, padding: 16, background: selected === q.correctAnswer ? C.green + "12" : C.red + "12", border: `1px solid ${selected === q.correctAnswer ? C.green : C.red}30`, borderRadius: 14 }}>
-            <div style={{ fontWeight: 700, fontSize: 13, color: selected === q.correctAnswer ? C.green : C.red, marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
-              {selected === q.correctAnswer ? "✓ Rätt svar!" : "✗ Fel – rätt svar markerat ovan"}
+        {/* Duolingo-style bottom sheet feedback (practice mode) */}
+        {answered && mode === "practice" && (() => {
+          const correct = selected === q.correctAnswer;
+          return (
+            <div style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 480, zIndex: 50, background: correct ? "#14532d" : "#7f1d1d", borderRadius: "20px 20px 0 0", padding: "22px 24px 36px", animation: "slideUp 0.25s ease" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                <div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, color: "#fff", fontWeight: 700, flexShrink: 0 }}>
+                  {correct ? "✓" : "✗"}
+                </div>
+                <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 20, color: "#fff" }}>
+                  {correct ? "Rätt!" : "Fel!"}
+                </div>
+                {correct && (
+                  <div style={{ marginLeft: "auto", background: "rgba(255,255,255,0.15)", borderRadius: 99, padding: "3px 12px", fontSize: 13, fontWeight: 700, color: "#fff" }}>
+                    +10 XP
+                  </div>
+                )}
+              </div>
+              <p style={{ color: correct ? "#bbf7d0" : "#fecaca", fontSize: 13, lineHeight: 1.65, margin: "0 0 16px" }}>
+                {q.explanation}
+              </p>
+              {!correct && <AIExplainer question={q} context="wrong" />}
+              <button onClick={() => advance()} style={{ width: "100%", padding: 14, background: correct ? "#22c55e" : "#ef4444", color: "#fff", borderRadius: 14, fontSize: 15, fontWeight: 700, border: "none" }}>
+                {idx + 1 >= questions.length ? "Se resultat →" : "Fortsätt →"}
+              </button>
             </div>
-            <p style={{ color: C.textSecondary, fontSize: 13, lineHeight: 1.65, margin: 0 }}>{q.explanation}</p>
-            {selected !== q.correctAnswer && <AIExplainer question={q} context="wrong" />}
-          </div>
-        )}
-
-        {/* Next button (practice mode) */}
-        {answered && mode === "practice" && (
-          <button onClick={() => advance()} style={{ marginTop: 14, width: "100%", padding: 14, background: C.primary, color: "#fff", borderRadius: 14, fontSize: 15, fontWeight: 600 }}>
-            {idx + 1 >= questions.length ? "Se resultat →" : "Nästa fråga →"}
-          </button>
-        )}
+          );
+        })()}
       </div>
     </div>
   );
@@ -975,16 +1054,24 @@ function ResultView({ session, onHome, onRetry, onDashboard, onPracticeWeak }) {
   return (
     <div style={{ minHeight: "100vh", padding: "28px 24px 48px" }}>
 
-      {/* Score hero */}
-      <div style={{ textAlign: "center", marginBottom: 28 }}>
-        <div style={{ fontSize: 56, marginBottom: 8 }}>{score.passed ? "🎉" : score.percentage >= 50 ? "📖" : "💪"}</div>
-        <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 56, color: getLevelColor(score.percentage), lineHeight: 1 }}>
+      {/* Result hero */}
+      <div style={{ textAlign: "center", marginBottom: 24 }}>
+        {session.xpEarned > 0 && (
+          <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: 90, height: 90, borderRadius: "50%", background: C.gold + "22", border: `3px solid ${C.gold}`, marginBottom: 14, animation: "xpPop 0.5s ease" }}>
+            <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 26, color: C.gold, lineHeight: 1 }}>+{session.xpEarned}</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: C.gold, letterSpacing: "0.05em" }}>XP</div>
+          </div>
+        )}
+        <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 26, color: C.textPrimary, marginBottom: 8 }}>
+          {score.passed ? "FANTASTISKT!" : score.percentage >= 70 ? "NÄSTAN DÄR!" : score.percentage >= 50 ? "BRA JOBBAT!" : "KÄMPA PÅ!"}
+        </div>
+        <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 52, color: getLevelColor(score.percentage), lineHeight: 1, marginBottom: 6 }}>
           {score.percentage}%
         </div>
-        <div style={{ marginTop: 10, fontSize: 16, fontWeight: 600, color: score.passed ? C.green : C.red }}>
+        <div style={{ fontSize: 15, fontWeight: 600, color: score.passed ? C.green : C.red, marginBottom: 4 }}>
           {score.passed ? "Godkänt ✓" : "Inte godkänt ännu"}
         </div>
-        <div style={{ marginTop: 4, color: C.textMuted, fontSize: 13 }}>
+        <div style={{ color: C.textMuted, fontSize: 13 }}>
           {score.score} av {score.total} rätt · {formatTime(duration)}
         </div>
       </div>
@@ -2062,6 +2149,7 @@ export default function App() {
   const [quizQuestions, setQuizQuestions] = useState([]);
   const [quizMode, setQuizMode] = useState("practice");
   const [lastSession, setLastSession] = useState(null);
+  const [totalXP, setTotalXP] = useState(0);
 
   useEffect(() => {
     bootApp();
@@ -2071,6 +2159,7 @@ export default function App() {
     setHistory(loadHistory());
     setErrorBank(loadErrorBank());
     setStreak(loadStreak());
+    setTotalXP(loadXP());
     setView(loadOnboarded() ? "home" : "onboarding");
   }
 
@@ -2099,6 +2188,7 @@ export default function App() {
     saveHistory(record);
     setHistory(loadHistory());
     setStreak(updateStreak());
+    if (session.xpEarned > 0) setTotalXP(addXP(session.xpEarned));
     setView("result");
   }
 
@@ -2147,7 +2237,7 @@ export default function App() {
       <style>{globalStyle}</style>
       <div style={{ maxWidth: 480, margin: "0 auto", background: C.bg, minHeight: "100vh" }}>
         {view === "onboarding"     && <OnboardingView onDone={() => setView("home")} />}
-        {view === "home"           && <HomeView onStartPractice={() => setView("practice-setup")} onStartExam={() => setView("exam-setup")} onDashboard={() => setView("dashboard")} onErrorBank={() => setView("errorbank")} onStudy={() => setView("study")} streak={streak} history={history} errorBank={errorBank} />}
+        {view === "home"           && <HomeView onStartPractice={() => setView("practice-setup")} onStartExam={() => setView("exam-setup")} onDashboard={() => setView("dashboard")} onErrorBank={() => setView("errorbank")} onStudy={() => setView("study")} streak={streak} history={history} errorBank={errorBank} totalXP={totalXP} />}
         {view === "study"          && <StudyView onBack={() => setView("home")} />}
         {view === "practice-setup" && <PracticeSetupView onStart={startPractice} onBack={() => setView("home")} errorBank={errorBank} />}
         {view === "exam-setup"     && <ExamSetupView onStart={startExam} onBack={() => setView("home")} history={history} />}
