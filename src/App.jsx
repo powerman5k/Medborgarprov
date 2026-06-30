@@ -258,19 +258,19 @@ function getChapterProgress(errorBank) {
 // STYLES
 // ============================================================
 const C = {
-  bg: "#0f1117",
-  surface: "#1a1f2e",
-  surfaceHover: "#222840",
-  border: "#2a3050",
-  primary: "#4f8ef7",
-  primaryDark: "#3a6fd4",
+  bg: "#0d0a14",
+  surface: "#1a1428",
+  surfaceHover: "#231d35",
+  border: "#2e2545",
+  primary: "#9b87d4",
+  primaryDark: "#7a68b8",
   gold: "#f5c842",
   green: "#22c55e",
   red: "#ef4444",
   amber: "#f59e0b",
-  textPrimary: "#f0f4ff",
-  textSecondary: "#8b9dc3",
-  textMuted: "#4a5580",
+  textPrimary: "#f0ecff",
+  textSecondary: "#9e93b7",
+  textMuted: "#5a4e78",
 };
 
 const globalStyle = `
@@ -416,7 +416,7 @@ function HomeView({ onStartPractice, onStartExam, onDashboard, onErrorBank, onSt
 
       {/* Hero */}
       <div style={{ padding: "32px 24px 0" }}>
-        <div style={{ background: `linear-gradient(135deg, #1a2a5e 0%, #1a1f2e 100%)`, border: `1px solid #2a3a7e`, borderRadius: 20, padding: 28, marginBottom: 20, position: "relative", overflow: "hidden" }}>
+        <div style={{ background: `linear-gradient(135deg, #1e1040 0%, #0d0a14 100%)`, border: `1px solid #3a2a60`, borderRadius: 20, padding: 28, marginBottom: 20, position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: -20, right: -20, width: 120, height: 120, background: C.primary, opacity: 0.06, borderRadius: "50%" }} />
           <div style={{ position: "relative" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
@@ -470,9 +470,6 @@ function HomeView({ onStartPractice, onStartExam, onDashboard, onErrorBank, onSt
             </div>
           </div>
         </div>
-
-        {/* AI-studietips */}
-        <AIStudyTip history={history} errorBank={errorBank} />
 
         {/* Huvudknappar */}
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -769,72 +766,6 @@ Ge en lite djupare förklaring av ämnet på svenska. Max 4–5 meningar.`;
       {error && <div style={{ color: C.red, fontSize: 13 }}>{error}</div>}
       {response && (
         <p className="ai-fade" style={{ color: C.textSecondary, fontSize: 13, lineHeight: 1.7, margin: 0 }}>{response}</p>
-      )}
-    </div>
-  );
-}
-
-// Komponent: AI-studietips på startsidan
-function AIStudyTip({ history, errorBank }) {
-  const { ask, loading, response, error } = useAI();
-  const [fetched, setFetched] = useState(false);
-
-  const chapterStats = (() => {
-    const stats = {};
-    ALL_QUESTIONS.forEach(q => {
-      if (!stats[q.chapter]) stats[q.chapter] = { chapter: q.chapter, name: q.chapterName, seen: 0, correct: 0 };
-      const e = errorBank[q.id];
-      if (e) { stats[q.chapter].seen += e.timesSeen; stats[q.chapter].correct += e.timesCorrect; }
-    });
-    return Object.values(stats)
-      .map(s => ({ ...s, pct: s.seen > 0 ? Math.round((s.correct / s.seen) * 100) : null }))
-      .filter(s => s.pct !== null)
-      .sort((a, b) => a.pct - b.pct);
-  })();
-
-  function getFeedback() {
-    setFetched(true);
-    const weak = chapterStats.slice(0, 3).map(c => `Kap ${c.chapter} – ${c.name} (${c.pct}%)`).join(", ");
-    const recentScores = history.slice(0, 5).map(h => h.percentage);
-    const trend = recentScores.length >= 2
-      ? recentScores[0] > recentScores[recentScores.length - 1] ? "förbättring" : "varierande"
-      : "för lite data";
-
-    ask(`Du är en studiestödjare för svenska medborgarskapsprovet. En person har följande studieprofil:
-
-Antal sessioner: ${history.length}
-Senaste resultat: ${recentScores.join("%, ")}%
-Trend: ${trend}
-Svagaste kapitel: ${weak || "inga data än"}
-
-Ge ett kort, uppmuntrande och konkret råd på svenska om vad de bör fokusera på härnäst. Max 2–3 meningar. Var specifik – nämn kapitelnamnen om det är relevant.`);
-  }
-
-  if (history.length < 1) return null;
-
-  return (
-    <div style={{ background: `linear-gradient(135deg, #1a1f3a 0%, #1a1f2e 100%)`, border: `1px solid ${C.primary}40`, borderRadius: 16, padding: 18, marginBottom: 16 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: fetched ? 12 : 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 18 }}>✨</span>
-          <span style={{ fontSize: 13, fontWeight: 700, color: C.primary }}>AI-studietips</span>
-        </div>
-        {!fetched && (
-          <button onClick={getFeedback}
-            style={{ padding: "6px 14px", background: C.primary, color: "#fff", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
-            Hämta tips
-          </button>
-        )}
-      </div>
-      {fetched && loading && (
-        <div style={{ display: "flex", alignItems: "center", gap: 8, color: C.textMuted, fontSize: 13 }}>
-          <span style={{ animation: "spin 1s linear infinite", display: "inline-block" }}>⟳</span>
-          Analyserar dina resultat...
-        </div>
-      )}
-      {fetched && error && <div style={{ color: C.red, fontSize: 13 }}>{error}</div>}
-      {fetched && response && (
-        <p style={{ color: C.textSecondary, fontSize: 13, lineHeight: 1.7, margin: 0 }}>{response}</p>
       )}
     </div>
   );
@@ -1218,7 +1149,7 @@ function LineChart({ data, width = 320, height = 140 }) {
         </linearGradient>
         <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
           <stop offset="0%" stopColor={C.primary} />
-          <stop offset="100%" stopColor="#7eb8ff" />
+          <stop offset="100%" stopColor="#c7b5d6" />
         </linearGradient>
       </defs>
 
