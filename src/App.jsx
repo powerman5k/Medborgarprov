@@ -40,7 +40,7 @@ const ALL_QUESTIONS = [
   {"id":34,"question":"Vad skyddar tryckfrihetsförordningen?","options":["Rätten att använda internet","Radio och tv","Det fria ordet i tryckt form – böcker, tidningar och tidskrifter","Rätten att demonstrera"],"correctAnswer":2,"chapter":5,"chapterName":"Lag och rätt","difficulty":"medium","tags":["grundlagar","yttrandefrihet"],"explanation":"Tryckfrihetsförordningen skyddar det fria ordet i tryckt form och ger alla rätt att fritt ge ut böcker, tidningar och tidskrifter."},
   {"id":35,"question":"Vad innebär allemansrätten?","options":["Alla har rätt att vistas i naturen oavsett vem som äger marken","Alla har rätt till sjukvård","Alla har rätt till gratis utbildning","Alla har rätt till bostad"],"correctAnswer":0,"chapter":5,"chapterName":"Lag och rätt","difficulty":"easy","tags":["grundlagar","natur"],"explanation":"Allemansrätten ger alla möjlighet att vara i naturen oavsett vem som äger marken. Den är skyddad i regeringsformen."},
   {"id":36,"question":"Vilken domstol är första instans i Sverige?","options":["Högsta domstolen","Förvaltningsrätten","Hovrätten","Tingsrätten"],"correctAnswer":3,"chapter":5,"chapterName":"Lag och rätt","difficulty":"medium","tags":["domstolar","rättsväsende"],"explanation":"Tingsrätten är första instans där brottsmål och tvistemål börjar. Därefter kan man överklaga till hovrätten och i vissa fall till Högsta domstolen."},
-  {"id":37,"question":"Från vilken ålder kan en person bli åtalad för brott i Sverige?","options":["12 år","15 år","18 år","13 år"],"correctAnswer":1,"chapter":5,"chapterName":"Lag och rätt","difficulty":"medium","tags":["lag","brott"],"explanation":"I Sverige är en person straffmyndig och kan bli åtalad för ett brott från 15 års ålder. Under 2026 har dock regeringen lämnat ett förslag om att sänka åldern till 13 år vid allvarliga brott."},
+  {"id":37,"question":"Från vilken ålder kan en person bli åtalad för brott i Sverige?","options":["12 år","15 år","18 år","13 år"],"correctAnswer":1,"chapter":5,"chapterName":"Lag och rätt","difficulty":"medium","tags":["lag","brott"],"explanation":"I Sverige är en person straffmyndig och kan bli åtalad för ett brott från 15 års ålder. Under 2026 har regeringen lämnat ett förslag om att straffmyndighetsåldern ska sänkas till 13 år vid allvarliga brott."},
   {"id":38,"question":"Vad är Åklagarmyndighetens uppgift?","options":["Att döma brottslingar","Att avgöra om misstänkta ska ställas inför domstol","Att verkställa straff","Att utreda brott"],"correctAnswer":1,"chapter":5,"chapterName":"Lag och rätt","difficulty":"medium","tags":["rättsväsende","lag"],"explanation":"Åklagarmyndigheten avgör om personer som misstänks för brott ska ställas inför en domstol. Polisen utreder, åklagaren beslutar om åtal och domstolen dömer."},
   {"id":39,"question":"Vad menas med att domstolarna är oberoende?","options":["Att regering och riksdag inte kan bestämma hur de ska döma","Att deras beslut aldrig kan överklagas","Att de inte behöver följa lagen","Att de finansieras av privata företag"],"correctAnswer":0,"chapter":5,"chapterName":"Lag och rätt","difficulty":"medium","tags":["domstolar","rättsäkerhet"],"explanation":"Domstolarnas oberoende innebär att regering eller riksdag inte kan bestämma hur de ska döma. Det är en viktig del av rättssäkerheten."},
   {"id":40,"question":"Vad bestämmer successionsordningen?","options":["Hur lagar stiftas","Medborgarnas grundläggande rättigheter","Vem som ska bli kung eller drottning efter den nuvarande","Hur val ska genomföras"],"correctAnswer":2,"chapter":5,"chapterName":"Lag och rätt","difficulty":"hard","tags":["grundlagar","monarki"],"explanation":"Successionsordningen är den grundlag som bestämmer vem som ska bli kung eller drottning efter den nuvarande."},
@@ -103,7 +103,37 @@ const ALL_QUESTIONS = [
   {"id":97,"question":"Vilket persiskt/kurdiskt nyår firas i samband med vårdagjämningen?","options":["Nouruz och Newroz","Id al-fitr och Eid al-Adha","Diwali och Holi","Yom Kippur och Rosh Hashanah"],"correctAnswer":0,"chapter":13,"chapterName":"Traditioner och högtider","difficulty":"hard","tags":["traditioner","mångkultur"],"explanation":"Det persiska nyåret Nouruz och det kurdiska nyåret Newroz firas i samband med vårdagjämningen den 21 mars. De är exempel på traditioner som har kommit till Sverige med invandrare."},
   {"id":98,"question":"Vad är advent?","options":["En helg för att minnas Gustav Vasa","En svensk tradition för att välkomna sommaren","Påskens förberedelseperiod","De fyra söndagarna före juldagen den 25 december"],"correctAnswer":3,"chapter":13,"chapterName":"Traditioner och högtider","difficulty":"easy","tags":["traditioner","jul","advent"],"explanation":"Advent infaller de fyra söndagarna före juldagen den 25 december. Advent betyder ankomst och var traditionellt en förberedelseperiod inför julen."},
   {"id":99,"question":"Vad uppmärksammas på första maj i Sverige?","options":["Vårens ankomst med valborgseldarna","Sveriges nationaldag och självständighet","Arbetarnas dag – med demonstrationer arrangerade av arbetarrörelsen","Gustav Vasas val till kung"],"correctAnswer":2,"chapter":13,"chapterName":"Traditioner och högtider","difficulty":"easy","tags":["traditioner","första maj"],"explanation":"På första maj firas arbetarnas dag internationellt. Det är en helgdag i Sverige där arbetarrörelsen arrangerar demonstrationer och folk håller tal om sociala och politiska frågor."},
-  {"id":100,"question":"Vilket är Sveriges statsskick?","options":["En federal stat med delstatsparlament","En konstitutionell monarki där kungen är statschef utan politisk makt","En parlamentarisk republik","En republik med vald president"],"correctAnswer":1,"chapter":3,"chapterName":"Så här styrs Sverige","difficulty":"easy","tags":["statsskick","monarki"],"explanation":"Sverige är en konstitutionell monarki. Det betyder att statschefen är en kung eller drottning som inte har någon politisk makt. Kungen fungerar som en symbol för Sverige."}
+  {"id":100,"question":"Vilket är Sveriges statsskick?","options":["En federal stat med delstatsparlament","En konstitutionell monarki där kungen är statschef utan politisk makt","En parlamentarisk republik","En republik med vald president"],"correctAnswer":1,"chapter":3,"chapterName":"Så här styrs Sverige","difficulty":"easy","tags":["statsskick","monarki"],"explanation":"Sverige är en konstitutionell monarki. Det betyder att statschefen är en kung eller drottning som inte har någon politisk makt. Kungen fungerar som en symbol för Sverige."},
+  {"id":101,"question":"Ungefär hur många invånare har Sverige?","options":["Cirka 5 miljoner","Cirka 7 miljoner","Nästan 11 miljoner","Circa 20 miljoner"],"correctAnswer":2,"chapter":1,"chapterName":"Landet Sverige","difficulty":"easy","tags":["befolkning","geografi"],"explanation":"I Sverige bor det nästan 11 miljoner människor. Befolkningen är inte jämnt fördelad i landet – de flesta bor i den södra delen och längs kusterna."},
+  {"id":102,"question":"Vem väljer ministrarna i den svenska regeringen?","options":["Riksdagen via omröstning","Kungen","Statsministern","EU-kommissionen"],"correctAnswer":2,"chapter":3,"chapterName":"Så här styrs Sverige","difficulty":"easy","tags":["riksdag","regering","statsminister"],"explanation":"Riksdagen väljer statsminister som får i uppdrag att bilda regering. Statsministern väljer sedan ministrarna i regeringen."},
+  {"id":103,"question":"Vad krävs för att rösta i kommunval utan att vara svensk medborgare?","options":["Man måste ha permanent uppehållstillstånd","Man måste ha bott och varit folkbokförd i Sverige i minst tre år","Man måste ha arbetat i Sverige i minst fem år","Det är inte möjligt – man måste vara medborgare"],"correctAnswer":1,"chapter":4,"chapterName":"Politiska val och partier","difficulty":"medium","tags":["val","rösträtt"],"explanation":"För att rösta i riksdagsvalet måste man vara svensk medborgare. För att rösta i kommunal- och regionvalen behöver man inte vara medborgare men ska ha bott och varit folkbokförd i Sverige under sammanlagt tre år."},
+  {"id":104,"question":"Vilka fem länder ingår i Norden?","options":["Sverige, Norge, Danmark, Finland och Estland","Sverige, Norge, Danmark, Finland och Island","Sverige, Norge, Danmark, Finland och Grönland","Sverige, Norge, Danmark, Finland och Ryssland"],"correctAnswer":1,"chapter":11,"chapterName":"Sverige och omvärlden","difficulty":"easy","tags":["Norden","internationellt","geografi"],"explanation":"I Norden finns fem länder: Danmark, Finland, Island, Norge och Sverige. Sverige är det största landet i Norden. De nordiska länderna samarbetar bland annat genom Nordiska rådet och Nordiska ministerrådet."},
+  {"id":105,"question":"Vad innebär asylrätt?","options":["Rätten att arbeta i vilket EU-land som helst","Rätten att söka och beviljas skydd i ett annat land om man förföljs","Rätten till permanent uppehållstillstånd efter fem år","Rätten att ta med sin familj vid flytt till Sverige"],"correctAnswer":1,"chapter":7,"chapterName":"Mänskliga rättigheter","difficulty":"medium","tags":["asyl","mänskliga rättigheter"],"explanation":"Asylrätten innebär att en person som riskerar förföljelse på grund av exempelvis etnicitet, religion eller politisk uppfattning har rätt att söka skydd i ett annat land. Rätten slås fast i FN:s flyktingkonvention från 1951."},
+  {"id":106,"question":"Hur många år varar grundskolan i Sverige?","options":["8 år","10 år","12 år","9 år"],"correctAnswer":3,"chapter":9,"chapterName":"Välfärdssamhället","difficulty":"easy","tags":["utbildning","skola"],"explanation":"Grundskolan i Sverige är 9 år, från år 1 till år 9. Alla barn har skolplikt och är skyldiga att delta i grundskoleutbildning. Gymnasieskolan är frivillig och är normalt 3 år."},
+  {"id":107,"question":"Vad innebär det att deklarera?","options":["Att ansöka om bidrag från kommunen","Att rapportera sin inkomst till Skatteverket","Att betala in sjukförsäkringsavgiften","Att ansöka om banklån"],"correctAnswer":1,"chapter":9,"chapterName":"Välfärdssamhället","difficulty":"easy","tags":["skatter","Skatteverket"],"explanation":"Alla som har haft en inkomst under året ska deklarera sin inkomst till Skatteverket. Det innebär att man redovisar hur mycket man tjänat så att rätt skatt kan beräknas."},
+  {"id":108,"question":"Vad är föräldrapenning?","options":["Barnbidrag som betalas ut månadsvis till alla barnfamiljer","Ersättning för att ta hand om sjuka barn","Ekonomiskt stöd från staten som föräldrar kan ta ut vid ett barns födelse eller adoption","Stöd till ensamstående föräldrar med låg inkomst"],"correctAnswer":2,"chapter":9,"chapterName":"Välfärdssamhället","difficulty":"medium","tags":["föräldrar","försäkringar","välfärd"],"explanation":"Föräldrapenning är en ekonomisk ersättning från Försäkringskassan som föräldrar kan ta ut under barnets första år. Sverige har en av världens mest generösa föräldraförsäkringar och föräldrapenningen kan delas fritt mellan föräldrarna."},
+  {"id":109,"question":"Vad är Nordiska rådet?","options":["EU:s nordliga avdelning","En militär allians mellan de nordiska länderna","Ett forum för parlamentariskt samarbete mellan de nordiska länderna","En handelsorganisation för Skandinavien"],"correctAnswer":2,"chapter":11,"chapterName":"Sverige och omvärlden","difficulty":"medium","tags":["Norden","internationellt"],"explanation":"Nordiska rådet är ett forum för parlamentariskt samarbete mellan Sverige, Danmark, Finland, Island och Norge, samt de självstyrande områdena Färöarna, Grönland och Åland. Det grundades 1952 och behandlar frågor av gemensamt nordiskt intresse."},
+  {"id":110,"question":"Vad är en vanlig tradition under påsk i Sverige?","options":["Att tända brasor och sjunga vårsånger","Att byta möbler och storhandla","Att dekorera med påskris, ge bort chokladägg och klä ut barnen till påskkärringar","Att fasta och sedan fira med lammstek"],"correctAnswer":2,"chapter":13,"chapterName":"Traditioner och högtider","difficulty":"medium","tags":["traditioner","påsk"],"explanation":"Under påsk är det tradition att dekorera med påskris – kvistar med fjädrar. Det är vanligt att äta ägg och ge bort chokladägg. I västra Sverige klär barnen ut sig till påskkärringar och knackar dörr för att få godis, lite som halloween."},
+  {"id":111,"question":"Vad innebär allemansrätten?","options":["Rätten att demonstrera utan tillstånd","Rätten att vistas i naturen oavsett vem som äger marken","Rätten att bilda fackföreningar","Rätten att ta del av myndighetsdokument"],"correctAnswer":1,"chapter":5,"chapterName":"Lag och rätt","difficulty":"easy","tags":["allemansrätten","natur"],"explanation":"Allemansrätten ger alla möjlighet att vistas i naturen oavsett vem som äger marken. Det går att gå, cykla, paddla, sätta upp tält, plocka bär och svamp. Allemansrätten är skyddad i regeringsformen men kräver att man är ansvarsfull och inte skadar naturen eller störer markägaren."},
+  {"id":112,"question":"Vilket år blev Sverige medlem i Nato?","options":["1995","2022","2023","2024"],"correctAnswer":3,"chapter":11,"chapterName":"Sverige och omvärlden","difficulty":"medium","tags":["Nato","säkerhetspolitik","försvar"],"explanation":"Sverige ansökte om Nato-medlemskap efter att Ryssland angrep Ukraina 2022. Sverige blev officiellt medlem i Nato år 2024. Dessförinnan hade Sverige under lång tid stått utanför militära allianser och bedrivit en politik av neutralitet och alliansfrihet."},
+  {"id":113,"question":"Vilka tre nivåer av domstolar finns i Sverige?","options":["Tingsrätt, länsrätt och Högsta förvaltningsdomstolen","Tingsrätt, hovrätt och Högsta domstolen","Distriktsrätt, apelldomstol och Riksdomstolen","Brottmålsdomstol, civildomstol och konstitutionsdomstol"],"correctAnswer":1,"chapter":5,"chapterName":"Lag och rätt","difficulty":"medium","tags":["domstolar","rättsväsendet"],"explanation":"Sverige har tre instanser: tingsrätten är första instans där brottmål och tvistemål börjar. Hovrätten prövar fall som överklagats från tingsrätten. Högsta domstolen (HD) prövar bara vissa viktiga fall som redan gått igenom tingsrätt och hovrätt."},
+  {"id":114,"question":"Vilket år blev FN:s barnkonvention lag i Sverige?","options":["1989","2000","2010","2020"],"correctAnswer":3,"chapter":7,"chapterName":"Mänskliga rättigheter","difficulty":"medium","tags":["barnkonventionen","barn","FN"],"explanation":"FN:s konvention om barnets rättigheter antogs av FN 1989. Sedan 2020 är barnkonventionen lag i Sverige. Det innebär att myndigheter, domstolar, kommuner och regioner är skyldiga att tillämpa barnkonventionens bestämmelser."},
+  {"id":115,"question":"Vad innebär Sveriges sexköpslag?","options":["Att det är olagligt att sälja sex","Att det är olagligt att köpa sex","Att både köpare och säljare av sex är olagliga","Att sexköp är tillåtet men reglerat"],"correctAnswer":1,"chapter":7,"chapterName":"Mänskliga rättigheter","difficulty":"medium","tags":["sexköpslagen","jämställdhet"],"explanation":"I Sverige är det olagligt att köpa sex, men inte att sälja det. Lagen riktar straffet mot köparen för att markera att det inte är acceptabelt att utnyttja någon sexuellt mot betalning. Sverige var ett av de första länderna i världen att införa denna typ av lagstiftning."},
+  {"id":116,"question":"Vilket år genomfördes det första riksdagsvalet där både män och kvinnor fick rösta i Sverige?","options":["1909","1918","1921","1945"],"correctAnswer":2,"chapter":10,"chapterName":"Sveriges moderna historia","difficulty":"medium","tags":["rösträtt","demokrati","historia"],"explanation":"År 1918 fattades beslutet om allmän rösträtt i Sverige efter många år av protester. Det första riksdagsvalet där både män och kvinnor fick rösta och där kvinnor kunde bli riksdagsledamöter genomfördes 1921. Därmed hade Sverige blivit en demokrati."},
+  {"id":117,"question":"Vad är Saltsjöbadsavtalet?","options":["Ett fredsavtal mellan Sverige och Ryssland från 1809","En uppgörelse om arbetsvillkor som slöts 1938 mellan fackförbund och arbetsgivare","Ett avtal om nordiskt samarbete från 1950-talet","En överenskommelse om neutralitet under andra världskriget"],"correctAnswer":1,"chapter":10,"chapterName":"Sveriges moderna historia","difficulty":"hard","tags":["arbetsmarknad","historia","svenska modellen"],"explanation":"År 1938 slöts Saltsjöbadsavtalet mellan arbetsgivare och fackförbund i Saltsjöbaden nära Stockholm. Det lade grunden för den så kallade svenska modellen, där arbetsmarknadens parter – inte politikerna – kommer överens om löner och villkor genom kollektivavtal."},
+  {"id":118,"question":"Vilka tre företag utgör Sveriges public service?","options":["SVT, TV4 och P4","SR, SVT och UR","SVT, SR och SvD","SVT, Netflix och SVT Play"],"correctAnswer":1,"chapter":6,"chapterName":"Medier","difficulty":"easy","tags":["public service","medier"],"explanation":"Sveriges public service består av Sveriges Radio (SR), Sveriges Television (SVT) och Utbildningsradion (UR). De ska vara oberoende av politiska och andra intressen, rapportera sakligt och ha ett brett utbud. De finansieras via en avgift som tas ut via skatten och får inte tjäna pengar på reklam."},
+  {"id":119,"question":"Vad innebär offentlighetsprincipen?","options":["Att alla politiska möten måste vara öppna för allmänheten","Att allmänna handlingar från myndigheter är offentliga och kan begäras ut","Att staten måste publicera alla lagar på internet","Att domstolsförhandlingar alltid är offentliga"],"correctAnswer":1,"chapter":6,"chapterName":"Medier","difficulty":"medium","tags":["offentlighetsprincipen","medier","demokrati"],"explanation":"Offentlighetsprincipen innebär att allmänna handlingar från myndigheter är offentliga. Vem som helst har rätt att ta del av dem om de inte är hemliga (under sekretess). Det underlättar journalisters och medborgares möjligheter att granska hur beslut har fattats."},
+  {"id":120,"question":"Vad är A-kassan?","options":["En statlig myndighet som beslutar om skatten","En ekonomisk förening som betalar ut ersättning till arbetslösa medlemmar","En facklig organisation för alla anställda","En försäkring mot olyckor på arbetsplatsen"],"correctAnswer":1,"chapter":8,"chapterName":"Arbetsmarknad och privatekonomi","difficulty":"easy","tags":["A-kassan","arbetslöshet","försäkring"],"explanation":"Arbetslöshetskassan (A-kassan) är en ekonomisk förening som betalar ut pengar till arbetslösa medlemmar. För att få ersättning måste man ha arbetat tillräckligt många timmar under en bestämd period och vara aktivt arbetssökande. Ersättningen finansieras av staten och av medlemmarnas avgifter."},
+  {"id":121,"question":"Vilka folkgrupper erkändes år 2000 som nationella minoriteter i Sverige?","options":["Somalier, syrianer, chilenare, vietnameser och polacker","Judar, romer, samer, sverigefinnar och tornedalingar","Kurder, iranier, turkar, greker och jugoslaver","Danskar, norrmän, finnar, islänningar och ester"],"correctAnswer":1,"chapter":7,"chapterName":"Mänskliga rättigheter","difficulty":"hard","tags":["nationella minoriteter","minoriteter"],"explanation":"År 2000 erkände Sverige judar, romer, samer, sverigefinnar och tornedalingar som nationella minoriteter. De har rätt att använda sina minoritetsspråk – jiddisch, romani chib, samiska, finska och meänkieli – i myndighetskontakter, i förskola och i äldreomsorg."},
+  {"id":122,"question":"Vad är Sametinget?","options":["Det nordiska parlamentet för samiska frågor","Samernas eget folkvalda parlament i Sverige","En kommunal nämnd i norra Sverige","FN:s organ för urfolksfrågor"],"correctAnswer":1,"chapter":7,"chapterName":"Mänskliga rättigheter","difficulty":"medium","tags":["samer","urfolk","Sametinget"],"explanation":"Sametinget är samernas eget folkvalda parlament i Sverige. Samer är ett erkänt urfolk med en långvarig relation till ett landområde som sträcker sig över Sverige, Norge, Finland och Ryssland och kallas Sápmi. Sametinget representerar den samiska befolkningen i frågor om språk, kultur och identitet och är ett rådgivande organ med vissa myndighetsuppgifter."},
+  {"id":123,"question":"Vilket år skildes Svenska kyrkan från staten?","options":["1951","1972","2000","2009"],"correctAnswer":2,"chapter":12,"chapterName":"En sekulär stat och ett mångreligiöst land","difficulty":"medium","tags":["Svenska kyrkan","religion","sekulär"],"explanation":"År 2000 skildes Svenska kyrkan från staten och blev ett av flera trossamfund i samhället. Dessförinnan var Svenska kyrkan statskyrka. Religionsfrihetslagen kom redan 1951 och gav människor rätt att fritt välja religion. Svenska kyrkan är fortfarande det största kristna samfundet i Sverige med ungefär fem miljoner medlemmar."},
+  {"id":124,"question":"Vilket år grundades FN (Förenta nationerna)?","options":["1918","1939","1946","1948"],"correctAnswer":2,"chapter":11,"chapterName":"Sverige och omvärlden","difficulty":"medium","tags":["FN","internationellt"],"explanation":"FN (Förenta nationerna) grundades 1946 efter andra världskriget av 51 länder, i syfte att bevara fred och säkerhet i världen och skydda mänskliga rättigheter. FN presenterade 1948 förklaringen om de mänskliga rättigheterna med 30 artiklar. Nästan alla världens länder är idag medlemmar i FN."},
+  {"id":125,"question":"Vilket år gick Sverige med i EU?","options":["1986","1990","1995","2004"],"correctAnswer":2,"chapter":11,"chapterName":"Sverige och omvärlden","difficulty":"easy","tags":["EU","internationellt"],"explanation":"Sverige har varit medlem i EU (Europeiska unionen) sedan 1995. EU är ett politiskt och ekonomiskt samarbete som startade efter andra världskriget för att skapa fred och stabilitet i Europa. Samarbetet innebär bland annat att människor kan studera, flytta, arbeta och sälja varor fritt mellan länderna – de fyra friheterna."},
+  {"id":126,"question":"Vad är regionernas främsta uppgift i Sverige?","options":["Att ansvara för grundskolan och gymnasiet","Att ansvara för hälso- och sjukvården","Att hantera alla statliga bidrag","Att bygga och sköta vägar och järnvägar"],"correctAnswer":1,"chapter":3,"chapterName":"Så här styrs Sverige","difficulty":"easy","tags":["regioner","sjukvård","kommuner"],"explanation":"Sveriges 21 regioner ansvarar främst för hälso- och sjukvården i respektive region. De driver och finansierar sjukhus och vårdcentraler. Regionerna ansvarar också för kollektivtrafik och länsmuseer. Regionerna styrs av politiker som invånarna valt i regionvalet och de tar ut skatt av sina invånare för att finansiera verksamheten."},
+  {"id":127,"question":"Vad är Diskrimineringsombudsmannen (DO)?","options":["En domare som prövar diskrimineringsbrott i domstol","En statlig myndighet som arbetar för allas lika rättigheter och ser till att diskrimineringslagen följs","En frivilligorganisation som stödjer diskriminerade personer","Ett politiskt parti som arbetar mot diskriminering"],"correctAnswer":1,"chapter":7,"chapterName":"Mänskliga rättigheter","difficulty":"medium","tags":["diskriminering","DO","myndigheter"],"explanation":"Diskrimineringsombudsmannen (DO) är en statlig myndighet som arbetar för allas lika rättigheter och möjligheter. DO ska se till att diskrimineringslagen följs, vilket förbjuder diskriminering på grund av kön, ålder, etnicitet, religion, sexuell läggning eller funktionsnedsättning."},
+  {"id":128,"question":"Sverige var 1979 det första landet i världen att besluta om förbud mot vad?","options":["Dödsstraff","Att slå barn","Barnäktenskap","Sexköp"],"correctAnswer":1,"chapter":7,"chapterName":"Mänskliga rättigheter","difficulty":"medium","tags":["barn","barnkonventionen","historia"],"explanation":"Sverige var 1979 det första landet i världen som beslutade att det är förbjudet att slå barn. Allt våld mot barn är förbjudet enligt barnkonventionen och svensk lag. Idag har cirka 70 länder i världen förbjudit våld mot barn."},
+  {"id":129,"question":"Vem formulerade idén om folkhemmet 1928?","options":["Gustaf V","Olof Palme","Per Albin Hansson","Tage Erlander"],"correctAnswer":2,"chapter":10,"chapterName":"Sveriges moderna historia","difficulty":"hard","tags":["folkhem","historia","socialdemokraterna"],"explanation":"År 1928 formulerade Per Albin Hansson, partiledare för Socialdemokraterna, idén om folkhemmet. Han beskrev det som ett samhälle där alla skulle kunna känna trygghet och gemenskap oavsett bakgrund, och där klasskillnaderna och de politiska motsättningarna skulle minska."},
+  {"id":130,"question":"Vad reglerar successionsordningen?","options":["Hur riksdagsvalen ska genomföras","Vem som ska bli kung eller drottning efter den nuvarande","Hur statens pengar ska fördelas","Vilka rättigheter utländska medborgare har i Sverige"],"correctAnswer":1,"chapter":5,"chapterName":"Lag och rätt","difficulty":"medium","tags":["grundlagar","successionsordningen","monarki"],"explanation":"Successionsordningen är en av Sveriges fyra grundlagar och bestämmer vem som ska bli kung eller drottning efter den nuvarande monarken. Sveriges kung är Carl XVI Gustaf och hans förstfödda dotter Victoria är kronprinsessa. Därefter står Victorias dotter Estelle på tur att bli monark."}
 ];
 
 // ============================================================
@@ -1945,272 +1975,4 @@ function ErrorBankView({ errorBank, onBack, onStartSession }) {
                     {/* Stats-rad */}
                     <div style={{ display: "flex", gap: 14, fontSize: 11, color: C.textMuted }}>
                       <span>👁 Sedd {q.timesSeen} {q.timesSeen === 1 ? "gång" : "gånger"}</span>
-                      <span style={{ color: C.green }}>✓ {q.timesCorrect} rätt</span>
-                      <span style={{ color: C.red }}>✗ {q.timesWrong} fel</span>
-                    </div>
-
-                    {/* AI-förklaring om frågan är svag */}
-                    {q.accuracy < 70 && <AIExplainer question={q} context="deepdive" />}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Träna på filtrerade frågor */}
-          {sorted.length > 0 && (
-            <button
-              onClick={() => onStartSession(shuffle(sorted).slice(0, 20))}
-              style={{ marginTop: 20, width: "100%", padding: 14, background: C.primary, color: "#fff", borderRadius: 14, fontSize: 14, fontWeight: 700 }}>
-              Träna på dessa {Math.min(sorted.length, 20)} frågor →
-            </button>
-          )}
-        </>
-      )}
-    </div>
-  );
-}
-
-// ============================================================
-// AUTH VIEWS
-// ============================================================
-// ============================================================
-// STUDY VIEW – Utbildningsmaterial från UHR
-// ============================================================
-const STUDY_CHAPTERS = [
-  { num: 1,  emoji: "📖", title: "Inledning",                                 file: "01_inledning" },
-  { num: 2,  emoji: "🗺️", title: "Landet Sverige",                            file: "02_landet-sverige" },
-  { num: 3,  emoji: "🏛️", title: "Sveriges demokratiska system",              file: "03_sveriges-demokratiska-system" },
-  { num: 4,  emoji: "⚖️", title: "Så här styrs Sverige",                      file: "04_sa-har-styrs-sverige" },
-  { num: 5,  emoji: "🗳️", title: "Politiska val och partier",                 file: "05_politiska-val-och-partier" },
-  { num: 6,  emoji: "🔒", title: "Lag och rätt",                              file: "06_lag-och-ratt" },
-  { num: 7,  emoji: "📰", title: "Mediernas roll",                            file: "07_mediernas-roll" },
-  { num: 8,  emoji: "✊", title: "Mänskliga rättigheter",                     file: "08_manskliga-rattigheter" },
-  { num: 9,  emoji: "💼", title: "Arbetsmarknad och privatekonomi",            file: "09_arbetsmarknad-och-privatekonomi" },
-  { num: 10, emoji: "🏥", title: "Välfärdssamhället",                         file: "10_valfardssamhallet" },
-  { num: 11, emoji: "📜", title: "Sveriges moderna historia",                  file: "11_sveriges-moderna-historia" },
-  { num: 12, emoji: "🌍", title: "Sverige och omvärlden",                     file: "12_sverige-och-omvarlden" },
-  { num: 13, emoji: "🕌", title: "En sekulär stat och ett mångreligiöst land", file: "13_en-sekular-stat-och-ett-mangreligiost-land" },
-  { num: 14, emoji: "🎄", title: "Traditioner och högtider",                  file: "14_traditioner-och-hogtider" },
-];
-
-const UHR_BASE = "https://www.uhr.se/globalassets/_uhr.se/medborgarskapsprovet/utbildningsmaterial/";
-const PDF_URL  = UHR_BASE + "sverige-i-fokus.pdf";
-
-function StudyChapterCard({ chapter }) {
-  const [open, setOpen] = useState(false);
-  const src = UHR_BASE + chapter.file + ".mp3";
-
-  return (
-    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden", transition: "border-color 0.2s", borderColor: open ? C.primary + "66" : C.border }}>
-      <button
-        onClick={() => setOpen(o => !o)}
-        style={{ width: "100%", background: "none", display: "flex", alignItems: "center", gap: 14, padding: "16px 18px", textAlign: "left" }}
-      >
-        <span style={{ fontSize: 22, flexShrink: 0, width: 32, textAlign: "center" }}>{chapter.emoji}</span>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 11, color: C.textMuted, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 2 }}>
-            Kapitel {chapter.num}
-          </div>
-          <div style={{ fontSize: 14, fontWeight: 600, color: C.textPrimary, lineHeight: 1.3 }}>{chapter.title}</div>
-        </div>
-        <span style={{ color: C.textMuted, fontSize: 18, flexShrink: 0, transition: "transform 0.2s", transform: open ? "rotate(90deg)" : "none" }}>›</span>
-      </button>
-
-      {open && (
-        <div style={{ padding: "0 18px 18px" }}>
-          <audio
-            controls
-            src={src}
-            preload="none"
-            style={{ width: "100%", height: 40, accentColor: C.primary, colorScheme: "light" }}
-          />
-          <div style={{ marginTop: 10, fontSize: 12, color: C.textMuted }}>
-            Ljudfil från UHR · mp3
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function StudyView({ onBack }) {
-  return (
-    <div style={{ minHeight: "100vh", padding: "0 0 48px" }}>
-      {/* Header */}
-      <div style={{ padding: "24px 24px 0", display: "flex", alignItems: "center", gap: 12 }}>
-        <button
-          onClick={onBack}
-          style={{ background: C.surface, border: `1px solid ${C.border}`, color: C.textSecondary, borderRadius: 10, padding: "8px 14px", fontSize: 13, fontWeight: 500 }}
-        >
-          ← Tillbaka
-        </button>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <SverigeFlag size={20} />
-          <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 15, color: C.textPrimary }}>Utbildningsmaterial</span>
-        </div>
-      </div>
-
-      <div style={{ padding: "28px 24px 0" }}>
-        {/* Intro-kort */}
-        <div style={{ background: "linear-gradient(135deg, #f0fdf4 0%, #f9f9fc 100%)", border: "1px solid #bbf7d0", borderRadius: 18, padding: 24, marginBottom: 24 }}>
-          <div style={{ fontSize: 28, marginBottom: 10 }}>📘</div>
-          <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 18, color: C.textPrimary, marginBottom: 8 }}>
-            Sverige i fokus
-          </div>
-          <div style={{ fontSize: 13, color: C.textSecondary, lineHeight: 1.6, marginBottom: 16 }}>
-            Officiellt studiematerial framtaget av UHR och Skolverket. Lyssna på kapitlen nedan eller ladda ned hela boken som PDF.
-          </div>
-          <a
-            href={PDF_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#22c55e22", border: "1px solid #22c55e66", color: C.green, borderRadius: 10, padding: "10px 16px", fontSize: 13, fontWeight: 600, textDecoration: "none" }}
-          >
-            📄 Öppna PDF
-          </a>
-        </div>
-
-        {/* Kapitel-lista */}
-        <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 11, color: C.textMuted, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14 }}>
-            14 kapitel · klicka för att lyssna
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {STUDY_CHAPTERS.map(ch => (
-              <StudyChapterCard key={ch.num} chapter={ch} />
-            ))}
-          </div>
-        </div>
-
-        {/* Footer-notering */}
-        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: "14px 16px", display: "flex", gap: 10 }}>
-          <span style={{ fontSize: 16, flexShrink: 0 }}>ℹ️</span>
-          <div style={{ fontSize: 12, color: C.textMuted, lineHeight: 1.5 }}>
-            Materialet är framtaget av UHR på uppdrag av regeringen. Övningsprov från andra aktörer är inte kontrollerade av UHR.
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-
-// ============================================================
-// APP ROOT
-// ============================================================
-export default function App() {
-  const [view, setView] = useState("loading");
-  const [history, setHistory] = useState([]);
-  const [errorBank, setErrorBank] = useState({});
-  const [streak, setStreak] = useState({ current: 0, longest: 0 });
-  const [quizQuestions, setQuizQuestions] = useState([]);
-  const [quizMode, setQuizMode] = useState("practice");
-  const [lastSession, setLastSession] = useState(null);
-  const [totalXP, setTotalXP] = useState(0);
-  const [userName, setUserName] = useState("");
-
-  useEffect(() => {
-    bootApp();
-  }, []);
-
-  function bootApp() {
-    setHistory(loadHistory());
-    setErrorBank(loadErrorBank());
-    setStreak(loadStreak());
-    setTotalXP(loadXP());
-    setUserName(loadUserName());
-    setView(loadOnboarded() ? "home" : "onboarding");
-  }
-
-  function handleQuizComplete(session) {
-    setLastSession(session);
-    const newEb = { ...errorBank };
-    session.results.forEach(r => {
-      if (!newEb[r.question.id]) newEb[r.question.id] = { questionId: r.question.id, timesSeen: 0, timesCorrect: 0 };
-      newEb[r.question.id].timesSeen++;
-      if (r.correct) newEb[r.question.id].timesCorrect++;
-    });
-    setErrorBank(newEb);
-    saveErrorBank(newEb);
-
-    const record = {
-      id: generateId(),
-      mode: session.mode,
-      date: new Date().toISOString(),
-      score: session.score.score,
-      total: session.score.total,
-      percentage: session.score.percentage,
-      passed: session.score.passed,
-      duration: session.duration,
-      breakdown: session.breakdown,
-    };
-    saveHistory(record);
-    setHistory(loadHistory());
-    setStreak(updateStreak());
-    if (session.xpEarned > 0) setTotalXP(addXP(session.xpEarned));
-    setView("result");
-  }
-
-  function startPractice(questions) {
-    setQuizQuestions(questions);
-    setQuizMode("practice");
-    setView("quiz");
-  }
-
-  function startExam() {
-    const qs = shuffle(ALL_QUESTIONS).slice(0, 40);
-    setQuizQuestions(qs);
-    setQuizMode("exam");
-    setView("quiz");
-  }
-
-  function startWeakPractice() {
-    const weakIds = Object.values(errorBank)
-      .filter(e => e.timesSeen > 0 && (e.timesCorrect / e.timesSeen) < 0.6)
-      .sort((a, b) => (a.timesCorrect / a.timesSeen) - (b.timesCorrect / b.timesSeen))
-      .slice(0, 20)
-      .map(e => e.questionId);
-    const qs = shuffle(ALL_QUESTIONS.filter(q => weakIds.includes(q.id)));
-    setQuizQuestions(qs.length > 0 ? qs : shuffle(ALL_QUESTIONS).slice(0, 20));
-    setQuizMode("practice");
-    setView("quiz");
-  }
-
-  function startErrorBankSession(questions) {
-    setQuizQuestions(shuffle(questions).slice(0, 20));
-    setQuizMode("practice");
-    setView("quiz");
-  }
-
-  if (view === "loading") return (
-    <div style={{ minHeight: "100vh", background: C.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <SverigeFlag size={24} />
-        <span style={{ fontFamily: "'Sora', sans-serif", color: C.textSecondary, fontSize: 16 }}>Laddar...</span>
-      </div>
-    </div>
-  );
-
-  return (
-    <>
-      <style>{globalStyle}</style>
-      <div style={{ maxWidth: 480, margin: "0 auto", background: C.bg, minHeight: "100vh" }}>
-        {view === "onboarding"     && <OnboardingView onDone={(name) => { if (name) setUserName(name); setView("home"); }} />}
-        {view === "home"           && <HomeView onStartPractice={() => setView("practice-setup")} onStartExam={() => setView("exam-setup")} onDashboard={() => setView("dashboard")} onErrorBank={() => setView("errorbank")} onStudy={() => setView("study")} streak={streak} history={history} errorBank={errorBank} totalXP={totalXP} userName={userName} />}
-        {view === "study"          && <StudyView onBack={() => setView("home")} />}
-        {view === "practice-setup" && <PracticeSetupView onStart={startPractice} onBack={() => setView("home")} errorBank={errorBank} />}
-        {view === "exam-setup"     && <ExamSetupView onStart={startExam} onBack={() => setView("home")} history={history} />}
-        {view === "errorbank"      && <ErrorBankView errorBank={errorBank} onBack={() => setView("home")} onStartSession={startErrorBankSession} />}
-        {view === "quiz"           && <QuizView key={generateId()} questions={quizQuestions} mode={quizMode} onComplete={handleQuizComplete} />}
-        {view === "result" && lastSession && lastSession.mode === "practice" && (
-          <ResultView session={lastSession} onHome={() => setView("home")} onRetry={() => setView("practice-setup")} onDashboard={() => setView("dashboard")} onPracticeWeak={startWeakPractice} />
-        )}
-        {view === "result" && lastSession && lastSession.mode === "exam" && (
-          <ExamResultView session={lastSession} onRetry={() => setView("exam-setup")} onHome={() => setView("home")} onDashboard={() => setView("dashboard")} onPracticeWeak={startWeakPractice} />
-        )}
-        {view === "dashboard"      && <DashboardView history={history} errorBank={errorBank} streak={streak} onBack={() => setView("home")} onPracticeWeak={startWeakPractice} />}
-      </div>
-    </>
-  );
-}
+                      <span style={{
