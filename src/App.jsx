@@ -1975,4 +1975,272 @@ function ErrorBankView({ errorBank, onBack, onStartSession }) {
                     {/* Stats-rad */}
                     <div style={{ display: "flex", gap: 14, fontSize: 11, color: C.textMuted }}>
                       <span>👁 Sedd {q.timesSeen} {q.timesSeen === 1 ? "gång" : "gånger"}</span>
-                      <span style={{
+                      <span style={{ color: C.green }}>✓ {q.timesCorrect} rätt</span>
+                      <span style={{ color: C.red }}>✗ {q.timesWrong} fel</span>
+                    </div>
+
+                    {/* AI-förklaring om frågan är svag */}
+                    {q.accuracy < 70 && <AIExplainer question={q} context="deepdive" />}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Träna på filtrerade frågor */}
+          {sorted.length > 0 && (
+            <button
+              onClick={() => onStartSession(shuffle(sorted).slice(0, 20))}
+              style={{ marginTop: 20, width: "100%", padding: 14, background: C.primary, color: "#fff", borderRadius: 14, fontSize: 14, fontWeight: 700 }}>
+              Träna på dessa {Math.min(sorted.length, 20)} frågor →
+            </button>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// AUTH VIEWS
+// ============================================================
+// ============================================================
+// STUDY VIEW – Utbildningsmaterial från UHR
+// ============================================================
+const STUDY_CHAPTERS = [
+  { num: 1,  emoji: "📖", title: "Inledning",                                 file: "01_inledning" },
+  { num: 2,  emoji: "🗺️", title: "Landet Sverige",                            file: "02_landet-sverige" },
+  { num: 3,  emoji: "🏛️", title: "Sveriges demokratiska system",              file: "03_sveriges-demokratiska-system" },
+  { num: 4,  emoji: "⚖️", title: "Så här styrs Sverige",                      file: "04_sa-har-styrs-sverige" },
+  { num: 5,  emoji: "🗳️", title: "Politiska val och partier",                 file: "05_politiska-val-och-partier" },
+  { num: 6,  emoji: "🔒", title: "Lag och rätt",                              file: "06_lag-och-ratt" },
+  { num: 7,  emoji: "📰", title: "Mediernas roll",                            file: "07_mediernas-roll" },
+  { num: 8,  emoji: "✊", title: "Mänskliga rättigheter",                     file: "08_manskliga-rattigheter" },
+  { num: 9,  emoji: "💼", title: "Arbetsmarknad och privatekonomi",            file: "09_arbetsmarknad-och-privatekonomi" },
+  { num: 10, emoji: "🏥", title: "Välfärdssamhället",                         file: "10_valfardssamhallet" },
+  { num: 11, emoji: "📜", title: "Sveriges moderna historia",                  file: "11_sveriges-moderna-historia" },
+  { num: 12, emoji: "🌍", title: "Sverige och omvärlden",                     file: "12_sverige-och-omvarlden" },
+  { num: 13, emoji: "🕌", title: "En sekulär stat och ett mångreligiöst land", file: "13_en-sekular-stat-och-ett-mangreligiost-land" },
+  { num: 14, emoji: "🎄", title: "Traditioner och högtider",                  file: "14_traditioner-och-hogtider" },
+];
+
+const UHR_BASE = "https://www.uhr.se/globalassets/_uhr.se/medborgarskapsprovet/utbildningsmaterial/";
+const PDF_URL  = UHR_BASE + "sverige-i-fokus.pdf";
+
+function StudyChapterCard({ chapter }) {
+  const [open, setOpen] = useState(false);
+  const src = UHR_BASE + chapter.file + ".mp3";
+
+  return (
+    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden", transition: "border-color 0.2s", borderColor: open ? C.primary + "66" : C.border }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{ width: "100%", background: "none", display: "flex", alignItems: "center", gap: 14, padding: "16px 18px", textAlign: "left" }}
+      >
+        <span style={{ fontSize: 22, flexShrink: 0, width: 32, textAlign: "center" }}>{chapter.emoji}</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 11, color: C.textMuted, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 2 }}>
+            Kapitel {chapter.num}
+          </div>
+          <div style={{ fontSize: 14, fontWeight: 600, color: C.textPrimary, lineHeight: 1.3 }}>{chapter.title}</div>
+        </div>
+        <span style={{ color: C.textMuted, fontSize: 18, flexShrink: 0, transition: "transform 0.2s", transform: open ? "rotate(90deg)" : "none" }}>›</span>
+      </button>
+
+      {open && (
+        <div style={{ padding: "0 18px 18px" }}>
+          <audio
+            controls
+            src={src}
+            preload="none"
+            style={{ width: "100%", height: 40, accentColor: C.primary, colorScheme: "light" }}
+          />
+          <div style={{ marginTop: 10, fontSize: 12, color: C.textMuted }}>
+            Ljudfil från UHR · mp3
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StudyView({ onBack }) {
+  return (
+    <div style={{ minHeight: "100vh", padding: "0 0 48px" }}>
+      {/* Header */}
+      <div style={{ padding: "24px 24px 0", display: "flex", alignItems: "center", gap: 12 }}>
+        <button
+          onClick={onBack}
+          style={{ background: C.surface, border: `1px solid ${C.border}`, color: C.textSecondary, borderRadius: 10, padding: "8px 14px", fontSize: 13, fontWeight: 500 }}
+        >
+          ← Tillbaka
+        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <SverigeFlag size={20} />
+          <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 15, color: C.textPrimary }}>Utbildningsmaterial</span>
+        </div>
+      </div>
+
+      <div style={{ padding: "28px 24px 0" }}>
+        {/* Intro-kort */}
+        <div style={{ background: "linear-gradient(135deg, #f0fdf4 0%, #f9f9fc 100%)", border: "1px solid #bbf7d0", borderRadius: 18, padding: 24, marginBottom: 24 }}>
+          <div style={{ fontSize: 28, marginBottom: 10 }}>📘</div>
+          <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 18, color: C.textPrimary, marginBottom: 8 }}>
+            Sverige i fokus
+          </div>
+          <div style={{ fontSize: 13, color: C.textSecondary, lineHeight: 1.6, marginBottom: 16 }}>
+            Officiellt studiematerial framtaget av UHR och Skolverket. Lyssna på kapitlen nedan eller ladda ned hela boken som PDF.
+          </div>
+          <a
+            href={PDF_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#22c55e22", border: "1px solid #22c55e66", color: C.green, borderRadius: 10, padding: "10px 16px", fontSize: 13, fontWeight: 600, textDecoration: "none" }}
+          >
+            📄 Öppna PDF
+          </a>
+        </div>
+
+        {/* Kapitel-lista */}
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 11, color: C.textMuted, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14 }}>
+            14 kapitel · klicka för att lyssna
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {STUDY_CHAPTERS.map(ch => (
+              <StudyChapterCard key={ch.num} chapter={ch} />
+            ))}
+          </div>
+        </div>
+
+        {/* Footer-notering */}
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: "14px 16px", display: "flex", gap: 10 }}>
+          <span style={{ fontSize: 16, flexShrink: 0 }}>ℹ️</span>
+          <div style={{ fontSize: 12, color: C.textMuted, lineHeight: 1.5 }}>
+            Materialet är framtaget av UHR på uppdrag av regeringen. Övningsprov från andra aktörer är inte kontrollerade av UHR.
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+// ============================================================
+// APP ROOT
+// ============================================================
+export default function App() {
+  const [view, setView] = useState("loading");
+  const [history, setHistory] = useState([]);
+  const [errorBank, setErrorBank] = useState({});
+  const [streak, setStreak] = useState({ current: 0, longest: 0 });
+  const [quizQuestions, setQuizQuestions] = useState([]);
+  const [quizMode, setQuizMode] = useState("practice");
+  const [lastSession, setLastSession] = useState(null);
+  const [totalXP, setTotalXP] = useState(0);
+  const [userName, setUserName] = useState("");
+
+  useEffect(() => {
+    bootApp();
+  }, []);
+
+  function bootApp() {
+    setHistory(loadHistory());
+    setErrorBank(loadErrorBank());
+    setStreak(loadStreak());
+    setTotalXP(loadXP());
+    setUserName(loadUserName());
+    setView(loadOnboarded() ? "home" : "onboarding");
+  }
+
+  function handleQuizComplete(session) {
+    setLastSession(session);
+    const newEb = { ...errorBank };
+    session.results.forEach(r => {
+      if (!newEb[r.question.id]) newEb[r.question.id] = { questionId: r.question.id, timesSeen: 0, timesCorrect: 0 };
+      newEb[r.question.id].timesSeen++;
+      if (r.correct) newEb[r.question.id].timesCorrect++;
+    });
+    setErrorBank(newEb);
+    saveErrorBank(newEb);
+
+    const record = {
+      id: generateId(),
+      mode: session.mode,
+      date: new Date().toISOString(),
+      score: session.score.score,
+      total: session.score.total,
+      percentage: session.score.percentage,
+      passed: session.score.passed,
+      duration: session.duration,
+      breakdown: session.breakdown,
+    };
+    saveHistory(record);
+    setHistory(loadHistory());
+    setStreak(updateStreak());
+    if (session.xpEarned > 0) setTotalXP(addXP(session.xpEarned));
+    setView("result");
+  }
+
+  function startPractice(questions) {
+    setQuizQuestions(questions);
+    setQuizMode("practice");
+    setView("quiz");
+  }
+
+  function startExam() {
+    const qs = shuffle(ALL_QUESTIONS).slice(0, 40);
+    setQuizQuestions(qs);
+    setQuizMode("exam");
+    setView("quiz");
+  }
+
+  function startWeakPractice() {
+    const weakIds = Object.values(errorBank)
+      .filter(e => e.timesSeen > 0 && (e.timesCorrect / e.timesSeen) < 0.6)
+      .sort((a, b) => (a.timesCorrect / a.timesSeen) - (b.timesCorrect / b.timesSeen))
+      .slice(0, 20)
+      .map(e => e.questionId);
+    const qs = shuffle(ALL_QUESTIONS.filter(q => weakIds.includes(q.id)));
+    setQuizQuestions(qs.length > 0 ? qs : shuffle(ALL_QUESTIONS).slice(0, 20));
+    setQuizMode("practice");
+    setView("quiz");
+  }
+
+  function startErrorBankSession(questions) {
+    setQuizQuestions(shuffle(questions).slice(0, 20));
+    setQuizMode("practice");
+    setView("quiz");
+  }
+
+  if (view === "loading") return (
+    <div style={{ minHeight: "100vh", background: C.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <SverigeFlag size={24} />
+        <span style={{ fontFamily: "'Sora', sans-serif", color: C.textSecondary, fontSize: 16 }}>Laddar...</span>
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      <style>{globalStyle}</style>
+      <div style={{ maxWidth: 480, margin: "0 auto", background: C.bg, minHeight: "100vh" }}>
+        {view === "onboarding"     && <OnboardingView onDone={(name) => { if (name) setUserName(name); setView("home"); }} />}
+        {view === "home"           && <HomeView onStartPractice={() => setView("practice-setup")} onStartExam={() => setView("exam-setup")} onDashboard={() => setView("dashboard")} onErrorBank={() => setView("errorbank")} onStudy={() => setView("study")} streak={streak} history={history} errorBank={errorBank} totalXP={totalXP} userName={userName} />}
+        {view === "study"          && <StudyView onBack={() => setView("home")} />}
+        {view === "practice-setup" && <PracticeSetupView onStart={startPractice} onBack={() => setView("home")} errorBank={errorBank} />}
+        {view === "exam-setup"     && <ExamSetupView onStart={startExam} onBack={() => setView("home")} history={history} />}
+        {view === "errorbank"      && <ErrorBankView errorBank={errorBank} onBack={() => setView("home")} onStartSession={startErrorBankSession} />}
+        {view === "quiz"           && <QuizView key={generateId()} questions={quizQuestions} mode={quizMode} onComplete={handleQuizComplete} />}
+        {view === "result" && lastSession && lastSession.mode === "practice" && (
+          <ResultView session={lastSession} onHome={() => setView("home")} onRetry={() => setView("practice-setup")} onDashboard={() => setView("dashboard")} onPracticeWeak={startWeakPractice} />
+        )}
+        {view === "result" && lastSession && lastSession.mode === "exam" && (
+          <ExamResultView session={lastSession} onRetry={() => setView("exam-setup")} onHome={() => setView("home")} onDashboard={() => setView("dashboard")} onPracticeWeak={startWeakPractice} />
+        )}
+        {view === "dashboard"      && <DashboardView history={history} errorBank={errorBank} streak={streak} onBack={() => setView("home")} onPracticeWeak={startWeakPractice} />}
+      </div>
+    </>
+  );
+}
