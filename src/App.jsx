@@ -186,6 +186,7 @@ const KEYS = {
   streak:    "mbp_streak",
   onboarded: "mbp_onboarded",
   xp:        "mbp_xp",
+  name:      "mbp_user_name",
 };
 
 function saveHistory(record) {
@@ -211,6 +212,8 @@ function loadErrorBank() {
 function loadOnboarded() {
   return localStorage.getItem(KEYS.onboarded) === "true";
 }
+function loadUserName() { return localStorage.getItem(KEYS.name) || ""; }
+function saveUserName(n) { if (n) localStorage.setItem(KEYS.name, n); }
 
 function markOnboarded() {
   localStorage.setItem(KEYS.onboarded, "true");
@@ -258,19 +261,19 @@ function getChapterProgress(errorBank) {
 // STYLES
 // ============================================================
 const C = {
-  bg: "#0d0a14",
-  surface: "#1a1428",
-  surfaceHover: "#231d35",
-  border: "#2e2545",
-  primary: "#9b87d4",
-  primaryDark: "#7a68b8",
-  gold: "#f5c842",
-  green: "#22c55e",
-  red: "#ef4444",
-  amber: "#f59e0b",
-  textPrimary: "#f0ecff",
-  textSecondary: "#9e93b7",
-  textMuted: "#5a4e78",
+  bg: "#F9F9FC",
+  surface: "#FFFFFF",
+  surfaceHover: "#F4F0FB",
+  border: "#E0D8F0",
+  primary: "#8876A8",
+  primaryDark: "#391C41",
+  gold: "#CE8252",
+  green: "#16a34a",
+  red: "#dc2626",
+  amber: "#d97706",
+  textPrimary: "#0C0221",
+  textSecondary: "#5A4E78",
+  textMuted: "#9E93B7",
 };
 
 const globalStyle = `
@@ -330,6 +333,7 @@ function DifficultyBadge({ difficulty }) {
 // ============================================================
 function OnboardingView({ onDone }) {
   const [step, setStep] = useState(0);
+  const [inputName, setInputName] = useState("");
   const steps = [
     {
       icon: "🇸🇪",
@@ -368,6 +372,20 @@ function OnboardingView({ onDone }) {
           <h2 style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 22, color: C.textPrimary, marginBottom: 12, textAlign: "center", lineHeight: 1.2 }}>{current.title}</h2>
           <p style={{ color: C.textSecondary, lineHeight: 1.7, textAlign: "center", fontSize: 15 }}>{current.body}</p>
 
+          {isLast && (
+            <div style={{ marginTop: 24 }}>
+              <input
+                type="text"
+                placeholder="Ditt förnamn"
+                value={inputName}
+                onChange={e => setInputName(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter" && inputName.trim()) { saveUserName(inputName.trim()); markOnboarded(); onDone(inputName.trim()); } }}
+                style={{ width: "100%", padding: "12px 14px", border: `1.5px solid ${C.border}`, borderRadius: 12, fontSize: 15, color: C.textPrimary, background: C.bg, outline: "none", boxSizing: "border-box" }}
+                autoFocus
+              />
+            </div>
+          )}
+
           <div style={{ display: "flex", justifyContent: "center", gap: 6, margin: "28px 0" }}>
             {steps.map((_, i) => (
               <div key={i} style={{ width: i === step ? 24 : 6, height: 6, borderRadius: 99, background: i === step ? C.primary : C.border, transition: "all 0.3s" }} />
@@ -375,7 +393,7 @@ function OnboardingView({ onDone }) {
           </div>
 
           <button
-            onClick={() => { if (isLast) { markOnboarded(); onDone(); } else setStep(s => s + 1); }}
+            onClick={() => { if (isLast) { saveUserName(inputName.trim()); markOnboarded(); onDone(inputName.trim()); } else setStep(s => s + 1); }}
             style={{ width: "100%", padding: "14px", background: C.primary, color: "#fff", borderRadius: 12, fontSize: 15, fontWeight: 600, transition: "opacity 0.2s" }}
             onMouseEnter={e => e.target.style.opacity = "0.85"}
             onMouseLeave={e => e.target.style.opacity = "1"}
@@ -397,159 +415,168 @@ function OnboardingView({ onDone }) {
 // ============================================================
 // HOME VIEW
 // ============================================================
-function HomeView({ onStartPractice, onStartExam, onDashboard, onErrorBank, onStudy, streak, history, errorBank, totalXP }) {
+function HomeView({ onStartPractice, onStartExam, onDashboard, onErrorBank, onStudy, streak, history, errorBank, totalXP, userName }) {
   const lastExam = history[0];
   const totalDone = history.length;
+  const weakCount = Object.values(errorBank).filter(e => e.timesSeen > 0 && (e.timesCorrect / e.timesSeen) < 0.7).length;
+
+  // Overall readiness from errorBank
+  const allEntries = Object.values(errorBank).filter(e => e.timesSeen > 0);
+  const totalSeen = allEntries.reduce((s, e) => s + e.timesSeen, 0);
+  const totalCorrect = allEntries.reduce((s, e) => s + e.timesCorrect, 0);
+  const readiness = totalSeen > 0 ? Math.round((totalCorrect / totalSeen) * 100) : 0;
+
+  // SVG ring
+  const R = 54;
+  const circ = parseFloat((2 * Math.PI * R).toFixed(1));
+  const ringOffset = totalSeen > 0 ? parseFloat(((1 - readiness / 100) * circ).toFixed(1)) : circ;
+  const ringColor = totalSeen === 0 ? C.border : getLevelColor(readiness);
 
   return (
-    <div style={{ minHeight: "100vh", padding: "0 0 40px" }}>
-      {/* Header */}
-      <div style={{ padding: "24px 24px 0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <SverigeFlag size={24} />
-          <span style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 16, color: C.textPrimary, letterSpacing: "-0.02em" }}>Medborgarprov</span>
-        </div>
-        <button onClick={onDashboard} style={{ background: C.surface, border: `1px solid ${C.border}`, color: C.textSecondary, borderRadius: 10, padding: "8px 14px", fontSize: 13, fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}>
-          📊 Dashboard
-        </button>
-      </div>
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: C.bg }}>
 
-      {/* Hero */}
-      <div style={{ padding: "32px 24px 0" }}>
-        <div style={{ background: `linear-gradient(135deg, #1e1040 0%, #0d0a14 100%)`, border: `1px solid #3a2a60`, borderRadius: 20, padding: 28, marginBottom: 20, position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "absolute", top: -20, right: -20, width: 120, height: 120, background: C.primary, opacity: 0.06, borderRadius: "50%" }} />
-          <div style={{ position: "relative" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
-              {streak.current > 0 && (
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: C.gold + "22", border: `1px solid ${C.gold}44`, borderRadius: 99, padding: "4px 12px" }}>
-                  <span style={{ fontSize: 14 }}>🔥</span>
-                  <span style={{ color: C.gold, fontSize: 12, fontWeight: 600 }}>{streak.current} dagars streak</span>
-                </div>
-              )}
-              {totalXP > 0 && (
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 5, background: C.primary + "22", border: `1px solid ${C.primary}44`, borderRadius: 99, padding: "4px 12px" }}>
-                  <span style={{ fontSize: 12 }}>⚡</span>
-                  <span style={{ color: C.primary, fontSize: 12, fontWeight: 600 }}>{totalXP} XP totalt</span>
-                </div>
-              )}
-            </div>
-            <h1 style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 26, color: C.textPrimary, lineHeight: 1.2, marginBottom: 8 }}>
-              Redo att öva?
-            </h1>
-            <p style={{ color: C.textSecondary, fontSize: 14, lineHeight: 1.6 }}>
-              {totalDone === 0
-                ? "Du har inte gjort något prov ännu. Börja med att träna på ett kapitel."
-                : `Du har gjort ${totalDone} prov${lastExam ? ` – senast ${lastExam.percentage}% rätt` : ""}.`}
-            </p>
-          </div>
-        </div>
+      {/* Scrollable content */}
+      <div style={{ flex: 1, overflowY: "auto", paddingBottom: 16 }}>
 
-        {/* Snabbstatistik */}
-        {totalDone > 0 && (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
-            <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16 }}>
-              <div style={{ color: C.textMuted, fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>Senaste prov</div>
-              <div style={{ fontSize: 26, fontWeight: 700, color: getLevelColor(lastExam?.percentage), fontFamily: "'Sora', sans-serif" }}>{lastExam?.percentage ?? "-"}%</div>
-              <div style={{ color: lastExam?.passed ? C.green : C.red, fontSize: 12, marginTop: 2 }}>{lastExam?.passed ? "Godkänt ✓" : "Ej godkänt"}</div>
-            </div>
-            <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 16 }}>
-              <div style={{ color: C.textMuted, fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>Genomfört</div>
-              <div style={{ fontSize: 26, fontWeight: 700, color: C.primary, fontFamily: "'Sora', sans-serif" }}>{totalDone}</div>
-              <div style={{ color: C.textSecondary, fontSize: 12, marginTop: 2 }}>{totalDone === 1 ? "prov" : "prov totalt"}</div>
-            </div>
-          </div>
-        )}
-
-        {/* Provet startar snart – infobanner */}
-        <div style={{ background: "#1a2a1a", border: "1px solid #2a5a2a", borderRadius: 14, padding: "14px 16px", marginBottom: 20, display: "flex", gap: 12, alignItems: "flex-start" }}>
-          <span style={{ fontSize: 18, flexShrink: 0 }}>📅</span>
+        {/* Header */}
+        <div style={{ padding: "28px 24px 0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: C.green, marginBottom: 4 }}>Riktiga provet startar augusti 2026</div>
-            <div style={{ fontSize: 12, color: C.textSecondary, lineHeight: 1.5 }}>
-              Du anmäler dig via UHR när du fått ett anvisningsbrev från Migrationsverket. Provet testar grundläggande kunskaper om det svenska samhället.
+            <div style={{ fontSize: 12, color: C.textMuted }}>God morgon</div>
+            {userName && <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 22, color: C.textPrimary }}>{userName}</div>}
+          </div>
+          <div style={{ width: 42, height: 42, borderRadius: "50%", background: C.primary + "20", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 15, color: C.primary, border: `1.5px solid ${C.primary}40` }}>
+            {userName ? userName[0].toUpperCase() : "🇸🇪"}
+          </div>
+        </div>
+
+        {/* Progress Ring */}
+        <div style={{ display: "flex", justifyContent: "center", padding: "28px 24px 8px" }}>
+          <div style={{ position: "relative", width: 140, height: 140 }}>
+            <svg width="140" height="140" viewBox="0 0 140 140">
+              <circle cx="70" cy="70" r={R} fill="none" stroke={C.border} strokeWidth="11" />
+              <circle cx="70" cy="70" r={R} fill="none" stroke={ringColor} strokeWidth="11"
+                strokeDasharray={circ} strokeDashoffset={ringOffset}
+                strokeLinecap="round" transform="rotate(-90 70 70)"
+                style={{ transition: "stroke-dashoffset 0.7s ease, stroke 0.4s ease" }} />
+            </svg>
+            <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 30, color: C.textPrimary, lineHeight: 1 }}>
+                {totalSeen > 0 ? `${readiness}%` : "–"}
+              </div>
+              <div style={{ fontSize: 11, color: C.textMuted, marginTop: 4 }}>
+                {totalSeen > 0 ? "träffsäkerhet" : "börja öva"}
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Huvudknappar */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        {/* Stats strip */}
+        <div style={{ display: "flex", gap: 8, padding: "8px 24px 24px" }}>
+          <div style={{ flex: 1, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: "10px 8px", textAlign: "center" }}>
+            <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 18, color: C.primary }}>{totalDone}</div>
+            <div style={{ fontSize: 10, color: C.textMuted, marginTop: 2 }}>prov</div>
+          </div>
+          <div style={{ flex: 1, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: "10px 8px", textAlign: "center" }}>
+            <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 18, color: C.gold }}>{streak.current > 0 ? `${streak.current}d` : "–"}</div>
+            <div style={{ fontSize: 10, color: C.textMuted, marginTop: 2 }}>streak</div>
+          </div>
+          <div style={{ flex: 1, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: "10px 8px", textAlign: "center" }}>
+            <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 18, color: C.gold }}>{totalXP}</div>
+            <div style={{ fontSize: 10, color: C.textMuted, marginTop: 2 }}>XP</div>
+          </div>
+          {lastExam && (
+            <div style={{ flex: 1, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: "10px 8px", textAlign: "center" }}>
+              <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 18, color: getLevelColor(lastExam.percentage) }}>{lastExam.percentage}%</div>
+              <div style={{ fontSize: 10, color: C.textMuted, marginTop: 2 }}>senast</div>
+            </div>
+          )}
+        </div>
+
+        {/* 2×2 Action grid */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, padding: "0 24px" }}>
           <button
             onClick={onStartPractice}
-            style={{ background: C.primary, color: "#fff", borderRadius: 16, padding: "20px 24px", textAlign: "left", transition: "opacity 0.2s" }}
-            onMouseEnter={e => e.currentTarget.style.opacity = "0.85"}
+            style={{ background: C.primary, borderRadius: 20, padding: "20px 16px", textAlign: "left", border: "none", cursor: "pointer", transition: "opacity 0.2s" }}
+            onMouseEnter={e => e.currentTarget.style.opacity = "0.87"}
             onMouseLeave={e => e.currentTarget.style.opacity = "1"}
           >
-            <div style={{ fontSize: 22, marginBottom: 6 }}>📚</div>
-            <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 17, marginBottom: 4 }}>Träna</div>
-            <div style={{ fontSize: 13, opacity: 0.8 }}>Välj kapitel och öva i din egen takt. Direkt feedback efter varje svar.</div>
+            <div style={{ fontSize: 26, marginBottom: 10 }}>📚</div>
+            <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 15, color: "#fff", marginBottom: 4 }}>Träna</div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.65)" }}>Välj kapitel</div>
           </button>
-
           <button
             onClick={onStartExam}
-            style={{ background: C.surface, border: `1px solid ${C.border}`, color: C.textPrimary, borderRadius: 16, padding: "20px 24px", textAlign: "left", transition: "background 0.2s" }}
+            style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 20, padding: "20px 16px", textAlign: "left", cursor: "pointer", transition: "background 0.15s" }}
             onMouseEnter={e => e.currentTarget.style.background = C.surfaceHover}
             onMouseLeave={e => e.currentTarget.style.background = C.surface}
           >
-            <div style={{ fontSize: 22, marginBottom: 6 }}>📝</div>
-            <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 17, marginBottom: 4 }}>Ta prov</div>
-            <div style={{ fontSize: 13, color: C.textSecondary }}>40 frågor · 45 minuter · Kräver 70% för godkänt</div>
+            <div style={{ fontSize: 26, marginBottom: 10 }}>📝</div>
+            <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 15, color: C.textPrimary, marginBottom: 4 }}>Ta prov</div>
+            <div style={{ fontSize: 12, color: C.textMuted }}>40 frågor · 45 min</div>
           </button>
-
           <button
             onClick={onErrorBank}
-            style={{ background: C.surface, border: `1px solid ${C.border}`, color: C.textPrimary, borderRadius: 16, padding: "20px 24px", textAlign: "left", transition: "background 0.2s", position: "relative" }}
+            style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 20, padding: "20px 16px", textAlign: "left", cursor: "pointer", transition: "background 0.15s", position: "relative" }}
             onMouseEnter={e => e.currentTarget.style.background = C.surfaceHover}
             onMouseLeave={e => e.currentTarget.style.background = C.surface}
           >
-            <div style={{ fontSize: 22, marginBottom: 6 }}>🎯</div>
-            <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 17, marginBottom: 4 }}>Felbank</div>
-            <div style={{ fontSize: 13, color: C.textSecondary }}>Öva på dina svaga frågor – sorterade efter träffsäkerhet</div>
-            {Object.values(errorBank).filter(e => e.timesSeen > 0 && (e.timesCorrect / e.timesSeen) < 0.7).length > 0 && (
-              <div style={{ position: "absolute", top: 16, right: 16, background: C.red, color: "#fff", borderRadius: 99, fontSize: 11, fontWeight: 700, padding: "2px 8px" }}>
-                {Object.values(errorBank).filter(e => e.timesSeen > 0 && (e.timesCorrect / e.timesSeen) < 0.7).length}
-              </div>
+            <div style={{ fontSize: 26, marginBottom: 10 }}>🎯</div>
+            <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 15, color: C.textPrimary, marginBottom: 4 }}>Felbank</div>
+            <div style={{ fontSize: 12, color: C.textMuted }}>{weakCount > 0 ? `${weakCount} svaga frågor` : "Öva för att fylla på"}</div>
+            {weakCount > 0 && (
+              <div style={{ position: "absolute", top: 14, right: 14, background: C.red, color: "#fff", borderRadius: 99, fontSize: 10, fontWeight: 700, padding: "2px 7px" }}>{weakCount}</div>
             )}
           </button>
-
           <button
             onClick={onStudy}
-            style={{ background: C.surface, border: `1px solid ${C.border}`, color: C.textPrimary, borderRadius: 16, padding: "20px 24px", textAlign: "left", transition: "background 0.2s" }}
+            style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 20, padding: "20px 16px", textAlign: "left", cursor: "pointer", transition: "background 0.15s" }}
             onMouseEnter={e => e.currentTarget.style.background = C.surfaceHover}
             onMouseLeave={e => e.currentTarget.style.background = C.surface}
           >
-            <div style={{ fontSize: 22, marginBottom: 6 }}>📘</div>
-            <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 17, marginBottom: 4 }}>Studera</div>
-            <div style={{ fontSize: 13, color: C.textSecondary }}>Lyssna på UHR:s officiella material · 14 kapitel · PDF</div>
+            <div style={{ fontSize: 26, marginBottom: 10 }}>📘</div>
+            <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 800, fontSize: 15, color: C.textPrimary, marginBottom: 4 }}>Studera</div>
+            <div style={{ fontSize: 12, color: C.textMuted }}>Lyssna · PDF</div>
           </button>
         </div>
 
-        {/* Chapter progress grid */}
-        {(() => {
-          const chapterProgress = getChapterProgress(errorBank);
-          const withData = chapterProgress.filter(c => c.pct !== null);
-          if (withData.length === 0) return null;
-          return (
-            <div style={{ marginTop: 28 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: C.textMuted, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 12 }}>
-                Framsteg per kapitel
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                {withData.map(ch => (
-                  <div key={ch.id} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: "10px 12px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
-                      <span style={{ fontSize: 11, color: C.textMuted }}>Kap {ch.id}</span>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: getLevelColor(ch.pct) }}>{ch.pct}%</span>
-                    </div>
-                    <ProgressBar value={ch.pct} max={100} color={getLevelColor(ch.pct)} height={4} />
-                    <div style={{ fontSize: 10, color: C.textMuted, marginTop: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {ch.name}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          );
-        })()}
+        {/* Info banner */}
+        <div style={{ margin: "16px 24px 0", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 14, padding: "12px 14px", display: "flex", gap: 10, alignItems: "flex-start" }}>
+          <span style={{ fontSize: 16, flexShrink: 0 }}>📅</span>
+          <div style={{ fontSize: 12, color: C.textSecondary, lineHeight: 1.55 }}>
+            Riktiga provet startar <strong style={{ color: C.green }}>augusti 2026</strong> – anmäl via UHR när du fått anvisningsbrev från Migrationsverket.
+          </div>
+        </div>
+
+
+      </div>
+
+      {/* Bottom nav */}
+      <div style={{ background: C.surface, borderTop: `1px solid ${C.border}`, padding: "10px 0 28px", display: "flex", justifyContent: "space-around", flexShrink: 0 }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, padding: "0 8px" }}>
+          <span style={{ fontSize: 20 }}>🏠</span>
+          <span style={{ fontSize: 9, color: C.primary, fontWeight: 700 }}>Hem</span>
+        </div>
+        <button
+          onClick={onStudy}
+          style={{ background: "none", border: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 4, padding: "0 8px", cursor: "pointer" }}
+        >
+          <span style={{ fontSize: 20 }}>📘</span>
+          <span style={{ fontSize: 9, color: C.textMuted }}>Studera</span>
+        </button>
+        <button
+          onClick={onDashboard}
+          style={{ background: "none", border: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 4, padding: "0 8px", cursor: "pointer" }}
+        >
+          <span style={{ fontSize: 20 }}>📊</span>
+          <span style={{ fontSize: 9, color: C.textMuted }}>Stats</span>
+        </button>
+        <button
+          onClick={onErrorBank}
+          style={{ background: "none", border: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 4, padding: "0 8px", cursor: "pointer" }}
+        >
+          <span style={{ fontSize: 20 }}>🎯</span>
+          <span style={{ fontSize: 9, color: C.textMuted }}>Felbank</span>
+        </button>
       </div>
     </div>
   );
@@ -1587,8 +1614,8 @@ function ExamResultView({ session, onRetry, onHome, onDashboard, onPracticeWeak 
       {/* Certificate card */}
       <div style={{
         background: score.passed
-          ? `linear-gradient(135deg, #0d2a1a 0%, #0f1f10 100%)`
-          : `linear-gradient(135deg, #2a0d0d 0%, #1f0f0f 100%)`,
+          ? `linear-gradient(135deg, #f0fdf4 0%, #f9f9fc 100%)`
+          : `linear-gradient(135deg, #fff5f5 0%, #f9f9fc 100%)`,
         border: `1.5px solid ${score.passed ? C.green + "50" : C.red + "50"}`,
         borderRadius: 20,
         padding: 28,
@@ -1791,7 +1818,7 @@ function ErrorBankView({ errorBank, onBack, onStartSession }) {
       {weakQuestions.length > 0 && (
         <button
           onClick={() => onStartSession(weakQuestions.slice(0, 20))}
-          style={{ width: "100%", marginBottom: 20, padding: "16px 20px", background: `linear-gradient(135deg, #3a1a1a, #2a1010)`, border: `1px solid ${C.red}40`, borderRadius: 16, textAlign: "left", color: C.textPrimary, transition: "opacity 0.2s" }}
+          style={{ width: "100%", marginBottom: 20, padding: "16px 20px", background: `linear-gradient(135deg, #fff5f5, #fef2f2)`, border: `1px solid ${C.red}40`, borderRadius: 16, textAlign: "left", color: C.textPrimary, transition: "opacity 0.2s" }}
           onMouseEnter={e => e.currentTarget.style.opacity = "0.85"}
           onMouseLeave={e => e.currentTarget.style.opacity = "1"}
         >
@@ -1996,7 +2023,7 @@ function StudyChapterCard({ chapter }) {
             controls
             src={src}
             preload="none"
-            style={{ width: "100%", height: 40, accentColor: C.primary, colorScheme: "dark" }}
+            style={{ width: "100%", height: 40, accentColor: C.primary, colorScheme: "light" }}
           />
           <div style={{ marginTop: 10, fontSize: 12, color: C.textMuted }}>
             Ljudfil från UHR · mp3
@@ -2026,7 +2053,7 @@ function StudyView({ onBack }) {
 
       <div style={{ padding: "28px 24px 0" }}>
         {/* Intro-kort */}
-        <div style={{ background: "linear-gradient(135deg, #1a3a2a 0%, #1a1f2e 100%)", border: "1px solid #2a5a3a", borderRadius: 18, padding: 24, marginBottom: 24 }}>
+        <div style={{ background: "linear-gradient(135deg, #f0fdf4 0%, #f9f9fc 100%)", border: "1px solid #bbf7d0", borderRadius: 18, padding: 24, marginBottom: 24 }}>
           <div style={{ fontSize: 28, marginBottom: 10 }}>📘</div>
           <div style={{ fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 18, color: C.textPrimary, marginBottom: 8 }}>
             Sverige i fokus
@@ -2081,6 +2108,7 @@ export default function App() {
   const [quizMode, setQuizMode] = useState("practice");
   const [lastSession, setLastSession] = useState(null);
   const [totalXP, setTotalXP] = useState(0);
+  const [userName, setUserName] = useState("");
 
   useEffect(() => {
     bootApp();
@@ -2091,6 +2119,7 @@ export default function App() {
     setErrorBank(loadErrorBank());
     setStreak(loadStreak());
     setTotalXP(loadXP());
+    setUserName(loadUserName());
     setView(loadOnboarded() ? "home" : "onboarding");
   }
 
@@ -2167,8 +2196,8 @@ export default function App() {
     <>
       <style>{globalStyle}</style>
       <div style={{ maxWidth: 480, margin: "0 auto", background: C.bg, minHeight: "100vh" }}>
-        {view === "onboarding"     && <OnboardingView onDone={() => setView("home")} />}
-        {view === "home"           && <HomeView onStartPractice={() => setView("practice-setup")} onStartExam={() => setView("exam-setup")} onDashboard={() => setView("dashboard")} onErrorBank={() => setView("errorbank")} onStudy={() => setView("study")} streak={streak} history={history} errorBank={errorBank} totalXP={totalXP} />}
+        {view === "onboarding"     && <OnboardingView onDone={(name) => { if (name) setUserName(name); setView("home"); }} />}
+        {view === "home"           && <HomeView onStartPractice={() => setView("practice-setup")} onStartExam={() => setView("exam-setup")} onDashboard={() => setView("dashboard")} onErrorBank={() => setView("errorbank")} onStudy={() => setView("study")} streak={streak} history={history} errorBank={errorBank} totalXP={totalXP} userName={userName} />}
         {view === "study"          && <StudyView onBack={() => setView("home")} />}
         {view === "practice-setup" && <PracticeSetupView onStart={startPractice} onBack={() => setView("home")} errorBank={errorBank} />}
         {view === "exam-setup"     && <ExamSetupView onStart={startExam} onBack={() => setView("home")} history={history} />}
